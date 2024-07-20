@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CarZen</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div id="road">
+      </div>
+
+    <div id="info-panels">
+      <div class="info-panel">
+        <h3>Баланс</h3>
+        <p id="balance">0</p>
+      </div>
+      <div class="info-panel">
+        <h3>Скорость заработка</h3>
+        <p id="earnRate">0/мин</p>
+      </div>
+      <div class="info-panel">
+        <h3>Топ</h3>
+        <p id="topScore">0</p>
+      </div>
+    </div>
+
+    <div id="inventory">
+      </div>
+
+    <div id="buttons">
+      <button class="round-button" id="shopButton">Магазин</button>
+      <button class="round-button" id="earnButton">Зарабатывать</button>
+      <button class="round-button" id="buyButton">Купить</button>
+      <button class="round-button" id="friendsButton">Друзья</button>
+    </div>
+
+    <div id="shop" style="display: none;"> 
+      </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

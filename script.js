@@ -66,53 +66,114 @@ function displayCars() {
           carLevel.textContent = `Lvl ${ownedCars[i].level}`;
       }
 
-      carSlot.addEventListener("dragstart", dragStart);
-      carSlot.addEventListener("dragover", dragOver);
-      carSlot.addEventListener("drop", dragDrop);
+      
+      carSlot.addEventListener("mousedown", startMove);
+    carSlot.addEventListener("mousemove", moveCar);
+    carSlot.addEventListener("mouseup", endMove);
+    carSlot.addEventListener("touchstart", startMove);
+    carSlot.addEventListener("touchmove", moveCar);
+    carSlot.addEventListener("touchend", endMove);
+
 
       inventory.appendChild(carSlot);
   }
 }
+let movingCarIndex = null;
+let movingCarElement = null;
 
-let draggedCarIndex = null;
 
-function dragStart(event) {
-  draggedCarIndex = parseInt(event.target.closest('.car-slot').dataset.index);
-  event.dataTransfer.effectAllowed = "move";
+function startMove(event) {
+  event.preventDefault();
+  const clientX = event.clientX || event.touches[0].clientX;
+  const clientY = event.clientY || event.touches[0].clientY;
+
+  movingCarIndex = parseInt(event.target.closest('.car-slot').dataset.index);
+  movingCarElement = event.target.closest('.car-slot');
+
+  // Запоминаем начальные координаты машинки относительно курсора/пальца
+  const offsetX = clientX - movingCarElement.offsetLeft;
+  const offsetY = clientY - movingCarElement.offsetTop;
+
+  movingCarElement.dataset.offsetX = offsetX;
+  movingCarElement.dataset.offsetY = offsetY;
+
+  // Устанавливаем z-index, чтобы машинка была выше остальных элементов
+  movingCarElement.style.zIndex = 1000;
+  movingCarElement.classList.add('dragging');
 }
 
-function dragOver(event) {
+
+
+function moveCar(event) {
   event.preventDefault();
-  event.dataTransfer.dropEffect = "move";
-}
+  if (movingCarElement) {
+      const clientX = event.clientX || event.touches[0].clientX;
+      const clientY = event.clientY || event.touches[0].clientY;
 
-function dragDrop(event) {
-  event.preventDefault();
-  const targetSlot = event.target.closest('.car-slot');
-  const targetIndex = parseInt(targetSlot.dataset.index);
+      // Получаем координаты и размеры контейнера #inventory
+      const inventoryRect = document.getElementById('inventory').getBoundingClientRect();
+      const inventoryStyle = getComputedStyle(document.getElementById('inventory'));
+      const inventoryPaddingLeft = parseFloat(inventoryStyle.paddingLeft);
+      const inventoryPaddingRight = parseFloat(inventoryStyle.paddingRight);
+      const inventoryPaddingTop = parseFloat(inventoryStyle.paddingTop);
+      const inventoryPaddingBottom = parseFloat(inventoryStyle.paddingBottom);
 
-  if (draggedCarIndex !== targetIndex) {
-      const draggedCar = ownedCars[draggedCarIndex];
-      const targetCar = ownedCars[targetIndex];
+      // Получаем размеры машинки
+      const carWidth = movingCarElement.offsetWidth;
+      const carHeight = movingCarElement.offsetHeight;
 
-      if (targetCar && draggedCar.level === targetCar.level) {
-          // Объединяем машинки
-          ownedCars[targetIndex] = {
-              ...draggedCar,
-              level: draggedCar.level + 1 // Увеличиваем уровень на 1
-          };
-          ownedCars[draggedCarIndex] = null; // Удаляем перетаскиваемую машинку
-      } else {
-          // Просто меняем машинки местами
-          [ownedCars[draggedCarIndex], ownedCars[targetIndex]] = [ownedCars[targetIndex], ownedCars[draggedCarIndex]];
-      }
+      // Рассчитываем допустимую область перемещения с учетом отступов
+      const minX = inventoryRect.left + inventoryPaddingLeft;
+      const maxX = inventoryRect.right - carWidth - inventoryPaddingRight;
+      const minY = inventoryRect.top + inventoryPaddingTop;
+      const maxY = inventoryRect.bottom - carHeight - inventoryPaddingBottom;
 
-      displayCars(); // Перерисовываем инвентарь
-      updateEarnRate(); // Обновляем скорость заработка
+      // Ограничиваем координаты машинки
+      const newLeft = Math.max(minX, Math.min(clientX - carWidth / 2, maxX));
+      const newTop = Math.max(minY, Math.min(clientY - carHeight / 2, maxY));
+
+      // Перемещаем машинку с помощью transform: translate
+      movingCarElement.style.transform = `translate(${newLeft}px, ${newTop}px)`;
   }
 }
 
 
+function endMove(event) {
+  event.preventDefault();
+  if (movingCarElement) {
+      const clientX = event.clientX || event.changedTouches[0].clientX;
+      const clientY = event.clientY || event.changedTouches[0].clientY;
+      const targetSlot = document.elementFromPoint(clientX, clientY).closest('.car-slot');
+      const targetIndex = parseInt(targetSlot.dataset.index);
+
+      if (movingCarIndex !== targetIndex) {
+          const draggedCar = ownedCars[movingCarIndex];
+          const targetCar = ownedCars[targetIndex];
+
+          if (targetCar && draggedCar) { // Объединяем, если обе машинки существуют
+              ownedCars[targetIndex] = {
+                  ...draggedCar,
+                  level: draggedCar.level + 1
+              };
+              ownedCars[movingCarIndex] = null;
+          } else {
+              [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [ownedCars[targetIndex], ownedCars[movingCarIndex]];
+          }
+      }
+
+      movingCarElement.style.position = 'relative';
+      movingCarElement.style.zIndex = '';
+      movingCarElement.style.left = '';
+      movingCarElement.style.top = '';
+      displayCars();
+      updateEarnRate();
+
+      movingCarIndex = null;
+      movingCarElement = null;
+      movingCarElement.classList.remove('dragging');
+    }
+
+  }
 
 
 // Функция для обновления скорости заработка

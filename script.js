@@ -145,29 +145,31 @@ function endMove(event) {
       const clientY = event.clientY || event.changedTouches[0].clientY;
       const targetSlot = document.elementFromPoint(clientX, clientY).closest('.car-slot');
 
-      if (targetSlot) { // Проверяем, что мы навели на слот
+      if (targetSlot) {
           const targetIndex = parseInt(targetSlot.dataset.index);
 
           if (movingCarIndex !== targetIndex) {
               const draggedCar = ownedCars[movingCarIndex];
               const targetCar = ownedCars[targetIndex];
 
-              if (targetCar && draggedCar) { // Объединяем, если обе машинки существуют
+              // Проверяем, есть ли машинки в обоих слотах и совпадают ли их уровни
+              if (targetCar && draggedCar && draggedCar.level === targetCar.level) { 
+                  // Объединяем машинки
                   ownedCars[targetIndex] = {
                       ...draggedCar,
                       level: draggedCar.level + 1
                   };
-              } else { // Иначе просто перемещаем
+                  ownedCars[movingCarIndex] = null; // Очищаем исходный слот
+              } else if (targetCar || draggedCar) {
+                  // Меняем местами только если хотя бы одна машинка существует
                   [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [ownedCars[targetIndex], ownedCars[movingCarIndex]];
-              }
-
-              // Очищаем исходный слот после перемещения или объединения
-              ownedCars[movingCarIndex] = null; 
+              } 
+              // Если оба слота пустые, ничего не делаем
           }
       }
 
       // Обновляем инвентарь и данные о заработке
-      displayCars(); 
+      displayCars();
       updateEarnRate();
 
       // Сбрасываем стили и переменные
@@ -178,6 +180,7 @@ function endMove(event) {
       movingCarElement = null;
   }
 }
+
 
 
 

@@ -1,5 +1,8 @@
 // Инициализация Telegram Web App
-Telegram.WebApp.ready(); 
+Telegram.WebApp.ready();
+
+// Развернуть на весь экран при загрузке
+Telegram.WebApp.expand();
 
 // Массив с данными о машинках (замените на свои данные)
 const cars = [

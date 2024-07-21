@@ -250,7 +250,13 @@ function displayShop() {
     appElement.style.maxHeight = desiredHeight + 'px'; // Устанавливаем максимальную высоту
   });
   
+  function adjustPageHeight() {
+    const appElement = document.getElementById('app');
+    const windowHeight = window.innerHeight;
+    const desiredHeight = 0.8 * windowHeight; // 80% от высоты окна (90% - 10%)
 
+    appElement.style.maxHeight = desiredHeight + 'px';
+}
 
 // Вызываем функции при загрузке страницы
 displayCars();

@@ -6,9 +6,16 @@ Telegram.WebApp.expand();
 
 // Массив с данными о машинках (замените на свои данные)
 const cars = [
-  { name: "Muscle Car", image: "muscle_car.png", level: 1, price: 10 },
-  { name: "Sports Car", image: "sports_car.png", level: 2, price: 100 },
-  // ... другие машинки (до 10 уровня)
+  { name: "1", image: "muscle_car.png", level: 1, price: 10 },
+  { name: "2", image: "sports_car.png", level: 2, price: 100 },
+  { name: "3", image: "muscle_car.png", level: 3, price: 1000 },
+  { name: "4", image: "sports_car.png", level: 4, price: 10000 },
+  { name: "5", image: "muscle_car.png", level: 5, price: 100000 },
+  { name: "6", image: "sports_car.png", level: 6, price: 1000000 },
+  { name: "7", image: "muscle_car.png", level: 7, price: 10000000 },
+  { name: "8", image: "sports_car.png", level: 8, price: 100000000 },
+  { name: "9", image: "muscle_car.png", level: 9, price: 1000000000 },
+  { name: "10", image: "sports_car.png", level: 10, price: 10000000000 },
 ];
 
 // Массив для хранения купленных машинок
@@ -143,7 +150,20 @@ function displayShop() {
     }
   });
   
-
+  const shopHeader = document.querySelector('.shop-header');
+  const inventory = document.getElementById('inventory');
+  
+  function adjustInventoryHeight() {
+    const shopHeaderHeight = shopHeader.offsetHeight; // Получаем высоту заголовка
+    const viewportHeight = window.innerHeight; // Получаем высоту области просмотра
+    const maxHeight = viewportHeight - shopHeaderHeight - 40; // Вычисляем максимальную высоту инвентаря
+  
+    inventory.style.maxHeight = `${maxHeight}px`; // Устанавливаем максимальную высоту инвентаря
+  }
+  
+  // Вызываем функцию при загрузке страницы и при изменении размера окна
+  window.addEventListener('load', adjustInventoryHeight);
+  window.addEventListener('resize', adjustInventoryHeight);
   
 // Вызываем функции при загрузке страницы
 displayCars();

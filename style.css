@@ -92,6 +92,7 @@ body {
     width: 90%;
     margin-left: auto;
     margin-right: auto;
+    
 }
 
 .car-slot {
@@ -155,29 +156,40 @@ body {
 /* Магазин */
 #shop {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Элементы располагаются вертикально */
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Центрируем по горизонтали и вертикали */
-    width: 90%; /* Уменьшаем ширину */
-    max-width: 700px; /* Устанавливаем максимальную ширину */
-    height: auto; /* Устанавливаем высоту автоматически */
-    max-height: 30vh; /* Устанавливаем максимальную высоту */
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 700px;
+    height: auto;
+    max-height: 70vh;
     background-color: rgba(0, 0, 0, 0.8);
-    align-items: center;
-    justify-content: center;
     padding: clamp(20px, 3.5vw, 30px);
     border-radius: 10px;
     z-index: 10;
-    overflow: hidden; /* Предотвращаем растягивание */
+    overflow-y: auto; /* Прокрутка по вертикали */
 }
 
+/* Заголовок магазина */
 .shop-header {
     text-align: center;
-    font-size: clamp(2rem, 4vw, 2.5rem); /* Увеличиваем размер шрифта */
+    font-size: clamp(2rem, 4vw, 2.5rem);
     margin-bottom: 20px;
     text-transform: uppercase;
+    position: sticky; /* Фиксируем заголовок */
+    top: 0; /* Прикрепляем к верхней части контейнера */
+    background-color: rgba(0, 0, 0, 0.8); /* Фон заголовка (чтобы не было прозрачности при прокрутке) */
+    z-index: 11; /* Устанавливаем z-index выше, чем у товаров */
+    padding: 10px 0; /* Добавляем отступы сверху и снизу для лучшей видимости */
+}
+
+/* Контейнер для товаров */
+.shop-items { /* Новый контейнер для товаров */
+    display: flex;
+    flex-direction: column; /* Товары располагаются вертикально */
+    width: 100%;
 }
 
 /* Элементы магазина */
@@ -193,18 +205,46 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Добавляем тень */
     transition: transform 0.2s ease, box-shadow 0.2s ease; /* Переходы для эффекта при наведении */
     width: 50%; /* Увеличиваем ширину */
-    max-width: 800px; /* Устанавливаем максимальную ширину */
+    max-width: 650px; /* Устанавливаем максимальную ширину */
     text-align: center; /* Центрируем текст */
+    display: grid; /* Используем grid для лучшего расположения элементов */
+  grid-template-columns: 1fr auto; /* Одна колонка для текста, другая для кнопки */
+  gap: 20px; /* Отступ между текстом и кнопкой */
+  width: 100%; /* Товары занимают всю ширину контейнера */
 }
 
 .shop-item img {
-    max-width: 150px; /* Увеличиваем максимальную ширину */
+    max-width: 250px; /* Увеличиваем максимальную ширину */
     height: auto; /* Автоматическая высота */
     border-radius: 7px; /* Скругляем углы изображений */
-    margin-right: 60px; /* Добавляем отступ справа от изображения */
+    margin-right: 70px; /* Добавляем отступ справа от изображения */
 }
 
 .shop-item:hover {
     transform: scale(1.02); /* Легкое увеличение при наведении */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Увеличиваем тень при наведении */
 }
+
+/* Кнопка "Купить" */
+.buy-button {
+    background-color: #ffd700; /* Оранжевый фон */
+    color: #002; /* Темно-синий текст */
+    padding: 15px 30px; /* Увеличенные отступы */
+    border: none;
+    border-radius: 25px; /* Скругленные углы */
+    font-size: 1.2rem; /* Увеличенный размер шрифта */
+    font-weight: bold;
+    cursor: pointer; /* Указатель при наведении */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Начальная тень */
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Плавные переходы */
+  }
+  
+  .buy-button:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Увеличенная тень при наведении */
+    transform: translateY(-2px); /* Легкий подъем при наведении */
+  }
+  
+  .buy-button:active {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Уменьшенная тень при нажатии */
+    transform: translateY(0); /* Возвращение на место при нажатии */
+  }

@@ -92,7 +92,8 @@ body {
     width: 90%;
     margin-left: auto;
     margin-right: auto;
-    
+    overflow: hidden; /* Добавляем overflow: hidden, чтобы скрыть машинки за пределами инвентаря */
+
 }
 
 .car-slot {
@@ -139,9 +140,10 @@ body {
 .car-slot.dragging {
     width: 80%; /* Уменьшаем ширину машинки на 20% */
     height: 80%; /* Уменьшаем высоту машинки на 20% */
-   
     z-index: 100; /* Устанавливаем высокий z-index */
+    transform: translate(var(--newLeft), var(--newTop)) !important; /* Используем CSS переменные для позиционирования */
 }
+
 /* Кнопки */
 #buttons {
     display: grid;

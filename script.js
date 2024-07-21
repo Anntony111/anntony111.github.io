@@ -106,34 +106,34 @@ function startMove(event) {
 
 function moveCar(event) {
   event.preventDefault();
+
+  let newLeft; // Объявляем newLeft один раз
+  let newTop; 
+
   if (movingCarElement) {
       const clientX = event.clientX || event.touches[0].clientX;
       const clientY = event.clientY || event.touches[0].clientY;
 
-      // Получаем координаты и размеры контейнера #inventory
+      // Получаем границы контейнера инвентаря
       const inventoryRect = document.getElementById('inventory').getBoundingClientRect();
-      const inventoryStyle = getComputedStyle(document.getElementById('inventory'));
-      const inventoryPaddingLeft = parseFloat(inventoryStyle.paddingLeft);
-      const inventoryPaddingRight = parseFloat(inventoryStyle.paddingRight);
-      const inventoryPaddingTop = parseFloat(inventoryStyle.paddingTop);
-      const inventoryPaddingBottom = parseFloat(inventoryStyle.paddingBottom);
 
       // Получаем размеры машинки
       const carWidth = movingCarElement.offsetWidth;
       const carHeight = movingCarElement.offsetHeight;
 
-      // Рассчитываем допустимую область перемещения с учетом отступов
-      const minX = inventoryRect.left + inventoryPaddingLeft;
-      const maxX = inventoryRect.right - carWidth - inventoryPaddingRight;
-      const minY = inventoryRect.top + inventoryPaddingTop;
-      const maxY = inventoryRect.bottom - carHeight - inventoryPaddingBottom;
+      // Вычисляем границы для перемещения машинки
+      const minX = inventoryRect.left;
+      const maxX = inventoryRect.right - carWidth;
+      const minY = inventoryRect.top;
+      const maxY = inventoryRect.bottom - carHeight;
 
-      // Ограничиваем координаты машинки
-      const newLeft = Math.max(minX, Math.min(clientX - carWidth / 2, maxX));
-      const newTop = Math.max(minY, Math.min(clientY - carHeight / 2, maxY));
+      // Ограничиваем координаты машинки и присваиваем значения переменным
+      newLeft = Math.max(minX, Math.min(clientX - movingCarElement.dataset.offsetX, maxX));
+      newTop = Math.max(minY, Math.min(clientY - movingCarElement.dataset.offsetY, maxY));
 
-      // Перемещаем машинку с помощью transform: translate
-      movingCarElement.style.transform = `translate(${newLeft}px, ${newTop}px)`;
+      // Устанавливаем CSS переменные для позиционирования
+      movingCarElement.style.setProperty('--newLeft', newLeft + 'px');
+      movingCarElement.style.setProperty('--newTop', newTop + 'px');
   }
 }
 
@@ -144,36 +144,41 @@ function endMove(event) {
       const clientX = event.clientX || event.changedTouches[0].clientX;
       const clientY = event.clientY || event.changedTouches[0].clientY;
       const targetSlot = document.elementFromPoint(clientX, clientY).closest('.car-slot');
-      const targetIndex = parseInt(targetSlot.dataset.index);
 
-      if (movingCarIndex !== targetIndex) {
-          const draggedCar = ownedCars[movingCarIndex];
-          const targetCar = ownedCars[targetIndex];
+      if (targetSlot) { // Проверяем, что мы навели на слот
+          const targetIndex = parseInt(targetSlot.dataset.index);
 
-          if (targetCar && draggedCar) { // Объединяем, если обе машинки существуют
-              ownedCars[targetIndex] = {
-                  ...draggedCar,
-                  level: draggedCar.level + 1
-              };
-              ownedCars[movingCarIndex] = null;
-          } else {
-              [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [ownedCars[targetIndex], ownedCars[movingCarIndex]];
+          if (movingCarIndex !== targetIndex) {
+              const draggedCar = ownedCars[movingCarIndex];
+              const targetCar = ownedCars[targetIndex];
+
+              if (targetCar && draggedCar) { // Объединяем, если обе машинки существуют
+                  ownedCars[targetIndex] = {
+                      ...draggedCar,
+                      level: draggedCar.level + 1
+                  };
+              } else { // Иначе просто перемещаем
+                  [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [ownedCars[targetIndex], ownedCars[movingCarIndex]];
+              }
+
+              // Очищаем исходный слот после перемещения или объединения
+              ownedCars[movingCarIndex] = null; 
           }
       }
 
-      movingCarElement.style.position = 'relative';
-      movingCarElement.style.zIndex = '';
-      movingCarElement.style.left = '';
-      movingCarElement.style.top = '';
-      displayCars();
+      // Обновляем инвентарь и данные о заработке
+      displayCars(); 
       updateEarnRate();
+
+      // Сбрасываем стили и переменные
+      movingCarElement.style.transform = '';
+      movingCarElement.classList.remove('dragging');
 
       movingCarIndex = null;
       movingCarElement = null;
-      movingCarElement.classList.remove('dragging');
-    }
-
   }
+}
+
 
 
 // Функция для обновления скорости заработка
@@ -196,38 +201,46 @@ function earnCoins() {
     updateInfoPanels();
   }
   
-// Обработчик события для кнопки "Купить" в магазине
-document.getElementById("shop").addEventListener("click", (event) => {
-  if (event.target.classList.contains("buy-button")) {
-      let occupiedSlots = ownedCars.filter(car => car !== null).length; // Подсчет занятых слотов
+  document.getElementById("shop").addEventListener("click", (event) => {
+    if (event.target.classList.contains("buy-button")) {
+        // Подсчет занятых слотов
+        let occupiedSlots = ownedCars.filter(car => car !== null).length;
 
-      if (occupiedSlots >= 12) {
-          alert("Превышен лимит гаража");
-          return;
-      }
+        // Проверка на наличие свободного места
+        if (occupiedSlots >= 12) {
+            alert("Превышен лимит гаража!");
+            return;
+        }
 
-      const carIndex = parseInt(event.target.dataset.carIndex);
-      const car = cars[carIndex];
+        const carIndex = parseInt(event.target.dataset.carIndex);
+        const car = cars[carIndex];
 
-      if (balance >= car.price) {
-          balance -= car.price;
+        if (balance >= car.price) {
+            balance -= car.price;
 
-          // Находим первый пустой слот
-          const emptySlotIndex = ownedCars.indexOf(null);
-          if (emptySlotIndex !== -1) {
-              ownedCars[emptySlotIndex] = car;
-          } else {
-              // Если нет пустых слотов, добавляем в конец
-              ownedCars.push(car);
-          }
+            // Находим первый пустой слот
+            let emptySlotIndex = -1;
+            for (let i = 0; i < ownedCars.length; i++) {
+                if (ownedCars[i] === null) {
+                    emptySlotIndex = i;
+                    break;
+                }
+            }
 
-          displayCars();
-          updateEarnRate();
-          updateInfoPanels();
-      } else {
-          // ... (сообщение о недостатке средств)
-      }
-  }
+            if (emptySlotIndex !== -1) {
+                ownedCars[emptySlotIndex] = car;
+            } else {
+                // Если нет пустых слотов, добавляем в конец
+                ownedCars.push(car);
+            }
+
+            displayCars();
+            updateEarnRate();
+            updateInfoPanels();
+        } else {
+            alert("Недостаточно средств!"); // Сообщение о недостатке средств
+        }
+    }
 });
 
 // Функция для анимации движения машинок

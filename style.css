@@ -1,10 +1,10 @@
 /* Общие стили */
 body {
-    background-color: #002;
+    background-color: #1a1a1a;
     font-family: 'Montserrat', sans-serif;
     color: #fff;
     margin: 0;
-    font-size: clamp(16px, 3vw, 20px); /* Размер шрифта от 16px до 20px */
+    font-size: clamp(16px, 3vw, 20px);
     display: flex;
     flex-direction: column;
 }
@@ -13,7 +13,7 @@ body {
 #road {
     background-image: url("https://i.imgur.com/t9Lgj2X.jpg");
     background-size: cover;
-    height: 50vh; /* Увеличиваем высоту дороги для анимации */
+    height: 50vh;
     background: linear-gradient(to bottom, #333, #222);
 }
 
@@ -21,7 +21,7 @@ body {
 #content {
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Растягиваем контент на оставшееся пространство */
+    flex-grow: 1;
 }
 
 /* Информационные панели */
@@ -35,20 +35,21 @@ body {
 .info-panel {
     background-color: rgba(0, 0, 0, 0.8);
     border: 1px solid #ffd700;
-    padding: clamp(15px, 2.5vh, 20px); /* Адаптивные отступы */
+    padding: clamp(15px, 2.5vh, 20px);
     text-align: center;
     flex: 1;
     margin: 0 5px;
     border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .info-panel h3 {
-    font-size: clamp(1.2rem, 2.5vw, 1.5rem); /* Адаптивный размер шрифта */
+    font-size: clamp(1.2rem, 2.5vw, 1.5rem);
     margin-bottom: 5px;
 }
 
 .info-panel p {
-    font-size: clamp(1rem, 2vw, 1.2rem); /* Адаптивный размер шрифта */
+    font-size: clamp(1rem, 2vw, 1.2rem);
 }
 
 /* Инвентарь */
@@ -56,13 +57,13 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    gap: clamp(10px, 1.5vw, 15px); /* Адаптивные отступы */
+    gap: clamp(10px, 1.5vw, 15px);
     padding: clamp(10px, 1.5vw, 15px);
     height: 30vh;
-    margin: 10px 0; 
-    width: 90%; 
+    margin: 10px 0;
+    width: 90%;
     margin-left: auto;
-    margin-right: auto; 
+    margin-right: auto;
 }
 
 .car-slot {
@@ -74,6 +75,7 @@ body {
     border: 1px solid #333;
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .car-slot img {
@@ -93,28 +95,28 @@ body {
     background-color: rgba(0, 0, 0, 0.7);
     color: #ffd700;
     padding: 5px 7px;
-    font-size: clamp(1rem, 1.5vw, 1.2rem); /* Адаптивный размер шрифта */
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
     border-radius: 7px;
 }
 
 /* Кнопки */
 #buttons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 колонки, каждая занимает 1fr */
-    gap: 10px; /* Отступы между кнопками */
-    padding: clamp(10px, 2.5vh, 15px); /* Адаптивные отступы */
-    margin-top: auto; /* Отталкиваем кнопки вниз */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: clamp(10px, 2.5vh, 15px);
+    margin-top: auto;
 }
 
 .round-button {
-    height: clamp(60px, 12vh, 90px); /* Высота кнопок от 60px до 90px */
+    height: clamp(60px, 12vh, 90px);
     border-radius: 25px;
     background-color: #ffd700;
     color: #002;
     border: none;
-    font-size: clamp(1.2rem, 2.5vw, 1.8rem); /* Адаптивный размер шрифта */
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
     font-weight: bold;
-    box-shadow: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -127,27 +129,28 @@ body {
 #shop {
     display: flex;
     flex-direction: column;
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Центрируем по горизонтали и вертикали */
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
     align-items: center;
     justify-content: center;
-    padding: clamp(20px, 3.5vw, 30px); /* Адаптивные отступы */
+    padding: clamp(20px, 3.5vw, 30px);
     border-radius: 10px;
     z-index: 10;
 }
 
 #shop > #shop {
-    width: 80%; /* Увеличиваем ширину меню магазина */
-    max-width: 800px; /* Ограничиваем максимальную ширину */
+    width: 90%; /* Увеличиваем ширину */
+    max-width: 1000px; /* Увеличиваем максимальную ширину */
 }
 
-.shop-header { /* Заголовок магазина */
+.shop-header {
     text-align: center;
-    font-size: clamp(1.8rem, 3.5vw, 2.2rem); /* Адаптивный размер шрифта */
+    font-size: clamp(1.8rem, 3.5vw, 2.2rem);
     margin-bottom: 20px;
     text-transform: uppercase;
 }

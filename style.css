@@ -4,7 +4,7 @@ body {
     font-family: 'Montserrat', sans-serif;
     color: #fff;
     margin: 0;
-    font-size: clamp(12px, 2vw, 16px); /* Размер шрифта от 12px до 16px */
+    font-size: clamp(16px, 3vw, 20px); /* Размер шрифта от 16px до 20px */
     display: flex;
     flex-direction: column;
 }
@@ -35,20 +35,20 @@ body {
 .info-panel {
     background-color: rgba(0, 0, 0, 0.8);
     border: 1px solid #ffd700;
-    padding: clamp(5px, 2vh, 10px); /* Адаптивные отступы */
+    padding: clamp(15px, 2.5vh, 20px); /* Адаптивные отступы */
     text-align: center;
     flex: 1;
     margin: 0 5px;
-    border-radius: 5px;
+    border-radius: 10px;
 }
 
 .info-panel h3 {
-    font-size: clamp(0.8rem, 1.5vw, 1rem); /* Адаптивный размер шрифта */
-    margin-bottom: 2px;
+    font-size: clamp(1.2rem, 2.5vw, 1.5rem); /* Адаптивный размер шрифта */
+    margin-bottom: 5px;
 }
 
 .info-panel p {
-    font-size: clamp(0.7rem, 1.2vw, 0.9rem); /* Адаптивный размер шрифта */
+    font-size: clamp(1rem, 2vw, 1.2rem); /* Адаптивный размер шрифта */
 }
 
 /* Инвентарь */
@@ -56,8 +56,8 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    gap: clamp(2px, 1vw, 5px); /* Адаптивные отступы */
-    padding: clamp(2px, 1vw, 5px);
+    gap: clamp(10px, 1.5vw, 15px); /* Адаптивные отступы */
+    padding: clamp(10px, 1.5vw, 15px);
     height: 30vh;
     margin: 10px 0; 
     width: 90%; 
@@ -72,7 +72,7 @@ body {
     justify-content: center;
     background-color: transparent;
     border: 1px solid #333;
-    border-radius: 5px;
+    border-radius: 10px;
     overflow: hidden;
 }
 
@@ -92,27 +92,27 @@ body {
     right: 5px;
     background-color: rgba(0, 0, 0, 0.7);
     color: #ffd700;
-    padding: 1px 3px;
-    font-size: 0.7rem;
-    border-radius: 5px;
+    padding: 5px 7px;
+    font-size: clamp(1rem, 1.5vw, 1.2rem); /* Адаптивный размер шрифта */
+    border-radius: 7px;
 }
 
 /* Кнопки */
 #buttons {
     display: flex;
     justify-content: space-around;
-    padding: clamp(3px, 1.5vh, 8px); /* Адаптивные отступы */
+    padding: clamp(10px, 2.5vh, 15px); /* Адаптивные отступы */
     margin-top: auto; /* Отталкиваем кнопки вниз */
 }
 
 .round-button {
-    width: clamp(80px, 15vw, 120px); /* Ширина кнопок от 80px до 120px */
-    height: clamp(40px, 8vh, 60px); /* Высота кнопок от 40px до 60px */
+    width: clamp(120px, 25vw, 180px); /* Ширина кнопок от 120px до 180px */
+    height: clamp(60px, 12vh, 90px); /* Высота кнопок от 60px до 90px */
     border-radius: 25px;
     background-color: #ffd700;
     color: #002;
     border: none;
-    font-size: clamp(0.8rem, 1.5vw, 1rem); /* Адаптивный размер шрифта */
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem); /* Адаптивный размер шрифта */
     font-weight: bold;
     box-shadow: none;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -135,8 +135,8 @@ body {
     background-color: rgba(0, 0, 0, 0.8);
     align-items: center;
     justify-content: center;
-    padding: clamp(10px, 3vw, 20px); /* Адаптивные отступы */
-    border-radius: 5px;
+    padding: clamp(20px, 3.5vw, 30px); /* Адаптивные отступы */
+    border-radius: 10px;
     z-index: 10;
 }
 
@@ -147,20 +147,21 @@ body {
 
 .shop-header { /* Заголовок магазина */
     text-align: center;
-    font-size: 1.5rem;
+    font-size: clamp(1.8rem, 3.5vw, 2.2rem); /* Адаптивный размер шрифта */
     margin-bottom: 20px;
     text-transform: uppercase;
 }
 
+/* Элементы магазина */
 .shop-item {
     display: flex;
     justify-content: space-between; /* Располагаем элементы по краям */
     align-items: center;
     background-color: rgba(34, 34, 34, 0.9); /* Более темный фон */
     color: #fff;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 7px; /* Увеличиваем скругление углов */
+    padding: clamp(20px, 3vh, 25px); /* Адаптивные отступы */
+    margin-bottom: clamp(20px, 3vh, 25px); /* Адаптивные отступы */
+    border-radius: 10px; /* Увеличиваем скругление углов */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Добавляем тень */
     transition: transform 0.2s ease, box-shadow 0.2s ease; /* Переходы для эффекта при наведении */
 }
@@ -171,10 +172,10 @@ body {
 }
 
 .shop-item img {
-    width: 120px;
-    height: auto;
-    margin-right: 50px;
-    border-radius: 5px; /* Скругляем углы изображения */
+    width: clamp(120px, 25vw, 180px); /* Размер изображения от 120px до 180px */
+    height: auto; /* Сохраняем пропорции */
+    margin-right: clamp(30px, 5vw, 60px); /* Адаптивные отступы */
+    border-radius: 10px; /* Скругляем углы изображения */
 }
 
 .shop-item .car-info {
@@ -183,18 +184,20 @@ body {
 
 .shop-item .car-info h4 {
     margin: 0 0 5px; /* Убираем отступы сверху и снизу */
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem); /* Адаптивный размер шрифта */
 }
 
 .shop-item .buy-button {
     background-color: #ffd700;
     color: #002;
-    padding: 10px 20px;
+    padding: clamp(15px, 2.5vh, 25px); /* Адаптивные отступы */
     border: none;
-    border-radius: 7px;
+    border-radius: 10px; /* Увеличиваем скругление углов */
     cursor: pointer;
     transition: background-color 0.2s ease;
     font-weight: bold;
     text-transform: uppercase;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem); /* Адаптивный размер шрифта */
 }
 
 .shop-item .buy-button:hover {

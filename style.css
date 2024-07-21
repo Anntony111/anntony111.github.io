@@ -18,7 +18,7 @@ body {
 
 
 #app {
-    padding-top: calc(10vh + 1000px); /* 10% высоты экрана + 50px */
+    padding-top: calc(5vh + 1000px); /* 10% высоты экрана + 50px */
 }
 
 

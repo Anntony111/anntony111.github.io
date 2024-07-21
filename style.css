@@ -1,27 +1,27 @@
 /* Общие стили */
 body {
-    background-color: #002; 
-    font-family: 'Montserrat', sans-serif; 
-    color: #fff; 
+    background-color: #002;
+    font-family: 'Montserrat', sans-serif;
+    color: #fff;
     margin: 0;
-    font-size: 14px; 
-    display: flex; 
-    flex-direction: column; 
+    font-size: clamp(12px, 2vw, 16px); /* Размер шрифта от 12px до 16px */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Дорога */
 #road {
-    background-image: url("https://i.imgur.com/t9Lgj2X.jpg"); 
+    background-image: url("https://i.imgur.com/t9Lgj2X.jpg");
     background-size: cover;
-    height: 50vh; 
-    background: linear-gradient(to bottom, #333, #222); 
+    height: 50vh; /* Увеличиваем высоту дороги для анимации */
+    background: linear-gradient(to bottom, #333, #222);
 }
 
 /* Контент (информационные панели, инвентарь и кнопки) */
 #content {
     display: flex;
     flex-direction: column;
-    flex-grow: 1; 
+    flex-grow: 1; /* Растягиваем контент на оставшееся пространство */
 }
 
 /* Информационные панели */
@@ -29,26 +29,26 @@ body {
     display: flex;
     justify-content: space-around;
     width: 100%;
-    margin-top: 5px; 
+    margin-top: 5px;
 }
 
 .info-panel {
-    background-color: rgba(0, 0, 0, 0.8); 
+    background-color: rgba(0, 0, 0, 0.8);
     border: 1px solid #ffd700;
-    padding: 8px; 
+    padding: clamp(5px, 2vh, 10px); /* Адаптивные отступы */
     text-align: center;
     flex: 1;
-    margin: 0 5px; 
-    border-radius: 5px; 
+    margin: 0 5px;
+    border-radius: 5px;
 }
 
 .info-panel h3 {
-    font-size: 0.9rem; 
-    margin-bottom: 2px; 
+    font-size: clamp(0.8rem, 1.5vw, 1rem); /* Адаптивный размер шрифта */
+    margin-bottom: 2px;
 }
 
 .info-panel p {
-    font-size: 0.8rem; 
+    font-size: clamp(0.7rem, 1.2vw, 0.9rem); /* Адаптивный размер шрифта */
 }
 
 /* Инвентарь */
@@ -56,13 +56,13 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    gap: 3px; 
-    padding: 3px; 
-    height: 30vh; 
-    margin: 10px 0; /* Убираем горизонтальные отступы */
-    width: 90%; /* Ограничиваем ширину инвентаря до 90% */
+    gap: clamp(2px, 1vw, 5px); /* Адаптивные отступы */
+    padding: clamp(2px, 1vw, 5px);
+    height: 30vh;
+    margin: 10px 0; 
+    width: 90%; 
     margin-left: auto;
-    margin-right: auto; /* Центрируем инвентарь */
+    margin-right: auto; 
 }
 
 .car-slot {
@@ -71,7 +71,7 @@ body {
     align-items: center;
     justify-content: center;
     background-color: transparent;
-    border: 1px solid #333; 
+    border: 1px solid #333;
     border-radius: 5px;
     overflow: hidden;
 }
@@ -88,12 +88,12 @@ body {
 
 .car-level {
     position: absolute;
-    bottom: 5px; 
+    bottom: 5px;
     right: 5px;
     background-color: rgba(0, 0, 0, 0.7);
-    color: #ffd700; 
-    padding: 1px 3px; 
-    font-size: 0.7rem; 
+    color: #ffd700;
+    padding: 1px 3px;
+    font-size: 0.7rem;
     border-radius: 5px;
 }
 
@@ -101,26 +101,26 @@ body {
 #buttons {
     display: flex;
     justify-content: space-around;
-    padding: 5px; 
+    padding: clamp(3px, 1.5vh, 8px); /* Адаптивные отступы */
     margin-top: auto; /* Отталкиваем кнопки вниз */
 }
 
 .round-button {
-    width: 100px; 
-    height: 50px; 
-    border-radius: 25px; 
+    width: clamp(80px, 15vw, 120px); /* Ширина кнопок от 80px до 120px */
+    height: clamp(40px, 8vh, 60px); /* Высота кнопок от 40px до 60px */
+    border-radius: 25px;
     background-color: #ffd700;
-    color: #002; 
+    color: #002;
     border: none;
-    font-size: 1rem;
+    font-size: clamp(0.8rem, 1.5vw, 1rem); /* Адаптивный размер шрифта */
     font-weight: bold;
-    box-shadow: none; 
+    box-shadow: none;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .round-button:hover {
-    transform: translateY(-2px); 
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Магазин */
@@ -135,9 +135,14 @@ body {
     background-color: rgba(0, 0, 0, 0.8);
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    padding: clamp(10px, 3vw, 20px); /* Адаптивные отступы */
     border-radius: 5px;
-    z-index: 10; 
+    z-index: 10;
+}
+
+#shop > #shop {
+    width: 80%; /* Увеличиваем ширину меню магазина */
+    max-width: 800px; /* Ограничиваем максимальную ширину */
 }
 
 .shop-header { /* Заголовок магазина */

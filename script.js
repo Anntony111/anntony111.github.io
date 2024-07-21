@@ -317,6 +317,21 @@ function displayShop() {
     appElement.style.maxHeight = desiredHeight + 'px';
 }
 
+// Обработчик события для кнопки "Магазин"
+document.getElementById("shopButton").addEventListener("click", () => {
+  displayShop();
+  document.getElementById("shop").style.display = "flex";
+
+  // Заменяем кнопку "Закрыть" на кнопку "Назад"
+  Telegram.WebApp.BackButton.onClick(() => {
+      document.getElementById("shop").style.display = "none"; // Скрываем магазин
+      Telegram.WebApp.BackButton.hide(); // Скрываем кнопку "Назад"
+      Telegram.WebApp.MainButton.show(); // Показываем основную кнопку (если она была скрыта)
+  });
+  Telegram.WebApp.BackButton.show(); // Показываем кнопку "Назад"
+  Telegram.WebApp.MainButton.hide(); // Скрываем основную кнопку (если она есть)
+});
+
 // Вызываем функции при загрузке страницы
 displayCars();
 updateInfoPanels();

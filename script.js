@@ -61,25 +61,28 @@ function earnCoins() {
     updateInfoPanels();
   }
   
-  setInterval(earnCoins, 600); // Запускаем заработок монет каждую минуту
-  // Обработчик события для кнопки "Купить" в магазине
-  document.getElementById("shop").addEventListener("click", (event) => {
+// Обработчик события для кнопки "Купить" в магазине
+document.getElementById("shop").addEventListener("click", (event) => {
     if (event.target.classList.contains("buy-button")) {
+      if (ownedCars.length >= 12) { // Проверяем, есть ли место в инвентаре
+        alert("Вы достигли максимального количества автомобилей");
+        return;
+      }
+  
       const carIndex = parseInt(event.target.dataset.carIndex);
       const car = cars[carIndex];
   
       if (balance >= car.price) {
         balance -= car.price;
         ownedCars.push(car); // Добавляем машинку в инвентарь
-        displayCars(); // Обновляем инвентарь
-        updateEarnRate(); // Обновляем скорость заработка
-        updateInfoPanels(); // Обновляем баланс и скорость заработка
+        displayCars(); 
+        updateEarnRate(); 
+        updateInfoPanels(); 
       } else {
         // ... (сообщение о недостатке средств)
       }
     }
   });
-
 // Функция для анимации движения машинок
 function animateCars() {
   // ... (логика анимации)

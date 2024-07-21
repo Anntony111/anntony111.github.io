@@ -1,20 +1,48 @@
-/* Basic layout */
-#app {
+/* Telegram Mini Apps Styling */
+body {
+    background-color: var(--tg-theme-bg-color); /* Используем переменные Telegram для адаптации к теме */
+    color: var(--tg-theme-text-color);
+    font-family: var(--tg-theme-font-family);
+  }
+  
+  /* Basic layout */
+  #app {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    background: linear-gradient(to bottom, #f2c94c, #f2994a); /* Градиент желтого фона */
+    background-size: 100% 100%;
+    position: relative; /* Для позиционирования магазина */
   }
   
+  /* Стили для имитации клетчатого узора */
+  #app::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.1) 75%),
+      linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.1) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+  }
+  
+  
   #road {
-    background-color: lightgray;
-    height: 30%;
+    background-color: lightgray; /* Цвет дороги */
+    height: 30%; 
     overflow: hidden;
   }
   
+  /* Info panels */
   #info-panels {
     display: flex;
-    justify-content: space-around; /* Равномерное распределение элементов по горизонтали */
-    width: 100%; /* Занимаем всю доступную ширину */
+    justify-content: space-around;
+    width: 100%;
+    padding: 10px;
   }
   
   .info-panel {
@@ -22,8 +50,8 @@
     border: 1px solid gray;
     padding: 10px;
     text-align: center;
-    flex: 1; /* Растягиваем панели на всю доступную ширину */
-    margin: 0 5px; /* Добавляем небольшие отступы между панелями */
+    flex: 1;
+    margin: 0 5px;
   }
   
   .info-panel h3 {
@@ -35,24 +63,31 @@
     font-size: 16px;
   }
   
-  
+  /* Inventory */
   #inventory {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 колонки */
-    grid-template-rows: repeat(3, 1fr); /* 3 ряда */
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     gap: 10px;
     padding: 10px;
     height: 40%;
   }
   
-  
   .car-slot {
     width: 100%;
     height: 100%;
     border: 1px solid black;
-    position: relative;
+    display: flex; /* Используем flexbox для центрирования */
+    align-items: center; /* Центрируем по вертикали */
+    justify-content: center; /* Центрируем по горизонтали */
   }
   
+  .car-slot img {
+    max-width: 100%; /* Изображение не выходит за пределы ячейки */
+    max-height: 100%;
+  }
+  
+  /* Buttons */
   #buttons {
     display: flex;
     justify-content: space-around;
@@ -68,26 +103,16 @@
     border: none;
   }
   
-  /* Media queries for responsiveness */
-  @media (max-width: 600px) {
-    #info-panels {
-      flex-direction: column; /* Располагаем панели вертикально на маленьких экранах */
-    }
-  
-    .info-panel {
-      margin-bottom: 10px; /* Добавляем отступ между панелями */
-    }
-  }
-
+  /* Shop */
   #shop {
-    display: flex;
+    display: none; /* Изначально скрыт */
     flex-direction: column;
-    position: absolute; /* Позиционируем магазин поверх остальных элементов */
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
+    background-color: rgba(0, 0, 0, 0.5);
     align-items: center;
     justify-content: center;
     padding: 20px;
@@ -107,3 +132,15 @@
     height: 50px;
     margin-right: 10px;
   }
+  
+  /* Media queries for responsiveness */
+  @media (max-width: 600px) {
+    #info-panels {
+      flex-direction: column; 
+    }
+  
+    .info-panel {
+      margin-bottom: 10px;
+    }
+  }
+  

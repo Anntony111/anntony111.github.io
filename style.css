@@ -11,11 +11,39 @@ body {
 
 /* Дорога */
 #road {
-    background-image: url("https://i.imgur.com/t9Lgj2X.jpg");
+    position: relative;
+    background-image: url("3333.png");
     background-size: cover;
     height: 50vh;
-    background: linear-gradient(to bottom, #333, #222);
+    overflow: hidden;
 }
+
+.car {
+    position: absolute;
+    width: 240px;
+    height: 100px;
+    background-image: url('taxi.png'); /* Замените на путь к вашему изображению */
+    background-size: cover;
+    top: 15%;
+    transform: translateY(-50%);
+    animation: drive 5s linear infinite;
+}
+
+@keyframes drive {
+    0% {
+        left: -30px;
+    }
+    45% {
+        left: calc(50% - 120px); /* Центрирование машинки */
+    }
+    55% {
+        left: calc(50% - 120px); /* Задержка в центре */
+    }
+    100% {
+        left: 100%;
+    }
+}
+
 
 /* Контент (информационные панели, инвентарь и кнопки) */
 #content {
@@ -166,42 +194,4 @@ body {
     border-radius: 10px; /* Увеличиваем скругление углов */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Добавляем тень */
     transition: transform 0.2s ease, box-shadow 0.2s ease; /* Переходы для эффекта при наведении */
-}
-
-.shop-item:hover {
-    transform: translateY(-3px); /* Поднимаем элемент при наведении */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Увеличиваем тень при наведении */
-}
-
-.shop-item img {
-    width: clamp(120px, 25vw, 180px); /* Размер изображения от 120px до 180px */
-    height: auto; /* Сохраняем пропорции */
-    margin-right: clamp(30px, 5vw, 60px); /* Адаптивные отступы */
-    border-radius: 10px; /* Скругляем углы изображения */
-}
-
-.shop-item .car-info {
-    flex-grow: 1; /* Позволяем информации о машинке занимать больше места */
-}
-
-.shop-item .car-info h4 {
-    margin: 0 0 5px; /* Убираем отступы сверху и снизу */
-    font-size: clamp(1.2rem, 2.5vw, 1.8rem); /* Адаптивный размер шрифта */
-}
-
-.shop-item .buy-button {
-    background-color: #ffd700;
-    color: #002;
-    padding: clamp(15px, 2.5vh, 25px); /* Адаптивные отступы */
-    border: none;
-    border-radius: 10px; /* Увеличиваем скругление углов */
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: clamp(1.2rem, 2.5vw, 1.8rem); /* Адаптивный размер шрифта */
-}
-
-.shop-item .buy-button:hover {
-    background-color: #daa520;
 }

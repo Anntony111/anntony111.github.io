@@ -18,8 +18,7 @@ const cars = [
   { name: "10", image: "sports_car.png", level: 10, price: 10000000000 },
 ];
 
-// Массив для хранения купленных машинок
-let ownedCars = [];
+let ownedCars = new Array(12).fill(null); // Создаем массив из 12 пустых слотов для машинок
 
 // Переменные для хранения данных
 let balance = 10; // Начальный баланс пользователя
@@ -37,47 +36,43 @@ function getCarImageByLevel(level) {
 }
 
 
-// Функция для отображения машинок в инвентаре (с поддержкой перетаскивания)
 function displayCars() {
   const inventory = document.getElementById("inventory");
-  inventory.innerHTML = ""; 
+  inventory.innerHTML = ""; // Очищаем инвентарь перед обновлением
 
-  for (let i = 0; i < 12; i++) {
-      const carSlot = document.createElement("div");
-      carSlot.classList.add("car-slot");
-      carSlot.draggable = true;
-      carSlot.dataset.index = i;
+  ownedCars.forEach((car, index) => {
+    const carSlot = document.createElement("div"); 
+    carSlot.classList.add("car-slot");  // Добавляем класс для стилизации слота
+    carSlot.draggable = true;           // Делаем слот перетаскиваемым
+    carSlot.dataset.index = index;      // Запоминаем индекс слота в дата-атрибуте
 
-      if (ownedCars[i]) {
-          let carImage = carSlot.querySelector("img");
-          if (!carImage) {
-              carImage = document.createElement("img");
-              carSlot.appendChild(carImage);
-          }
-          carImage.src = getCarImageByLevel(ownedCars[i].level);
-          carImage.alt = ownedCars[i].name;
+    if (car) { // Если в слоте есть машинка
+      // Добавляем изображение машинки
+      const carImage = document.createElement("img");
+      carImage.src = getCarImageByLevel(car.level); 
+      carImage.alt = car.name; 
+      carSlot.appendChild(carImage);
 
-          let carLevel = carSlot.querySelector(".car-level");
-          if (!carLevel) {
-              carLevel = document.createElement("div");
-              carLevel.classList.add("car-level");
-              carSlot.appendChild(carLevel);
-          }
-          carLevel.textContent = `Lvl ${ownedCars[i].level}`;
-      }
+      // Добавляем отображение уровня машинки
+      const carLevel = document.createElement("div");
+      carLevel.classList.add("car-level"); 
+      carLevel.textContent = `Lvl ${car.level}`;
+      carSlot.appendChild(carLevel);
+    }
 
-      
-      carSlot.addEventListener("mousedown", startMove);
+    // Добавляем обработчики событий для перетаскивания (drag-and-drop)
+    carSlot.addEventListener("mousedown", startMove);     
     carSlot.addEventListener("mousemove", moveCar);
     carSlot.addEventListener("mouseup", endMove);
+    // Обработчики для сенсорных устройств (touch events)
     carSlot.addEventListener("touchstart", startMove);
     carSlot.addEventListener("touchmove", moveCar);
     carSlot.addEventListener("touchend", endMove);
 
-
-      inventory.appendChild(carSlot);
-  }
+    inventory.appendChild(carSlot); // Добавляем слот в инвентарь
+  });
 }
+
 let movingCarIndex = null;
 let movingCarElement = null;
 
@@ -139,47 +134,48 @@ function moveCar(event) {
 
 
 function endMove(event) {
-  event.preventDefault();
-  if (movingCarElement) {
-      const clientX = event.clientX || event.changedTouches[0].clientX;
-      const clientY = event.clientY || event.changedTouches[0].clientY;
-      const targetSlot = document.elementFromPoint(clientX, clientY).closest('.car-slot');
+  event.preventDefault(); // Предотвращаем стандартное поведение браузера при окончании перетаскивания
 
-      if (targetSlot) {
-          const targetIndex = parseInt(targetSlot.dataset.index);
+  if (movingCarElement) { // Проверяем, что перетаскивание действительно происходило
+    // Получаем координаты, где закончилось перетаскивание
+    const clientX = event.clientX || event.changedTouches[0].clientX;
+    const clientY = event.clientY || event.changedTouches[0].clientY;
 
-          if (movingCarIndex !== targetIndex) {
-              const draggedCar = ownedCars[movingCarIndex];
-              const targetCar = ownedCars[targetIndex];
+    // Находим слот, на который была отпущена машинка
+    const targetSlot = document.elementFromPoint(clientX, clientY).closest('.car-slot');
 
-              // Проверяем, есть ли машинки в обоих слотах и совпадают ли их уровни
-              if (targetCar && draggedCar && draggedCar.level === targetCar.level) { 
-                  // Объединяем машинки
-                  ownedCars[targetIndex] = {
-                      ...draggedCar,
-                      level: draggedCar.level + 1
-                  };
-                  ownedCars[movingCarIndex] = null; // Очищаем исходный слот
-              } else if (targetCar || draggedCar) {
-                  // Меняем местами только если хотя бы одна машинка существует
-                  [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [ownedCars[targetIndex], ownedCars[movingCarIndex]];
-              } 
-              // Если оба слота пустые, ничего не делаем
-          }
-      }
+    if (targetSlot) { // Если машинка была отпущена на слот
+      const targetIndex = parseInt(targetSlot.dataset.index); // Получаем индекс целевого слота
 
-      // Обновляем инвентарь и данные о заработке
-      displayCars();
-      updateEarnRate();
+      if (movingCarIndex !== targetIndex) { // Если машинка перемещена в другой слот
+        const draggedCar = ownedCars[movingCarIndex];  // Машинка, которую перетащили
+        const targetCar = ownedCars[targetIndex];      // Машинка, которая уже была в целевом слоте (или null)
 
-      // Сбрасываем стили и переменные
-      movingCarElement.style.transform = '';
-      movingCarElement.classList.remove('dragging');
+        // Проверяем условия для объединения или перемещения
+        if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
+          // Объединение машинок:
+          ownedCars[targetIndex].level++;             // Увеличиваем уровень машинки в целевом слоте
+          ownedCars[movingCarIndex] = null;           // Очищаем исходный слот
+        } else {
+          // Перемещение машинок (или null, если слот пустой):
+          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
+        }
+      } // Если машинка отпущена на тот же слот, ничего не делаем
+    } // Если машинка отпущена вне слотов, ничего не делаем
 
-      movingCarIndex = null;
-      movingCarElement = null;
+    // Обновляем отображение инвентаря и данные о заработке
+    displayCars();
+    updateEarnRate();
+
+    // Сбрасываем стили и переменные, связанные с перетаскиванием
+    movingCarElement.style.transform = '';
+    movingCarElement.classList.remove('dragging');
+
+    movingCarIndex = null;
+    movingCarElement = null; 
   }
 }
+
 
 
 
@@ -206,45 +202,31 @@ function earnCoins() {
   
   document.getElementById("shop").addEventListener("click", (event) => {
     if (event.target.classList.contains("buy-button")) {
-        // Подсчет занятых слотов
-        let occupiedSlots = ownedCars.filter(car => car !== null).length;
-
-        // Проверка на наличие свободного места
-        if (occupiedSlots >= 12) {
-            alert("Превышен лимит гаража!");
-            return;
-        }
-
-        const carIndex = parseInt(event.target.dataset.carIndex);
-        const car = cars[carIndex];
-
-        if (balance >= car.price) {
-            balance -= car.price;
-
-            // Находим первый пустой слот
-            let emptySlotIndex = -1;
-            for (let i = 0; i < ownedCars.length; i++) {
-                if (ownedCars[i] === null) {
-                    emptySlotIndex = i;
-                    break;
-                }
-            }
-
-            if (emptySlotIndex !== -1) {
-                ownedCars[emptySlotIndex] = car;
-            } else {
-                // Если нет пустых слотов, добавляем в конец
-                ownedCars.push(car);
-            }
-
-            displayCars();
-            updateEarnRate();
-            updateInfoPanels();
+      const carIndex = parseInt(event.target.dataset.carIndex);
+      const car = cars[carIndex];
+  
+      if (balance >= car.price) {
+        balance -= car.price;
+  
+        // Находим первый пустой слот (более эффективный способ)
+        const emptySlotIndex = ownedCars.findIndex(slot => slot === null);
+  
+        if (emptySlotIndex !== -1) {
+          ownedCars[emptySlotIndex] = { ...car }; // Копируем данные машинки
         } else {
-            alert("Недостаточно средств!"); // Сообщение о недостатке средств
+          alert("Превышен лимит гаража!");
+          return; 
         }
+  
+        displayCars();
+        updateEarnRate();
+        updateInfoPanels();
+      } else {
+        alert("Недостаточно средств!");
+      }
     }
-});
+  });
+  
 
 // Функция для анимации движения машинок
 function animateCars() {

@@ -116,6 +116,7 @@ body {
     font-weight: bold;
     box-shadow: none;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin: 0 5px; /* Добавляем отступы между кнопками */
 }
 
 .round-button:hover {

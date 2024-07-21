@@ -241,6 +241,17 @@ function displayShop() {
   window.addEventListener('load', adjustInventoryHeight);
   window.addEventListener('resize', adjustInventoryHeight);
   
+
+  window.addEventListener('load', function() {
+    const appElement = document.getElementById('app'); // Получаем элемент #app
+    const windowHeight = window.innerHeight; // Получаем высоту окна
+    const desiredHeight = windowHeight - 10; // Вычитаем 1 сантиметр (10 пикселей)
+  
+    appElement.style.maxHeight = desiredHeight + 'px'; // Устанавливаем максимальную высоту
+  });
+  
+
+
 // Вызываем функции при загрузке страницы
 displayCars();
 updateInfoPanels();

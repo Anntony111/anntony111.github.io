@@ -99,14 +99,14 @@ body {
 
 /* Кнопки */
 #buttons {
-    display: flex;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 колонки, каждая занимает 1fr */
+    gap: 10px; /* Отступы между кнопками */
     padding: clamp(10px, 2.5vh, 15px); /* Адаптивные отступы */
     margin-top: auto; /* Отталкиваем кнопки вниз */
 }
 
 .round-button {
-    width: clamp(120px, 25vw, 180px); /* Ширина кнопок от 120px до 180px */
     height: clamp(60px, 12vh, 90px); /* Высота кнопок от 60px до 90px */
     border-radius: 25px;
     background-color: #ffd700;
@@ -116,7 +116,6 @@ body {
     font-weight: bold;
     box-shadow: none;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin: 0 5px; /* Добавляем отступы между кнопками */
 }
 
 .round-button:hover {

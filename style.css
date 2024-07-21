@@ -69,12 +69,12 @@ body {
 }
 
 .info-panel h3 {
-    font-size: clamp(1rem, 1.5vw, 1.3rem); 
-    margin: 17px 0;
+    font-size: clamp(1.4rem, 1.5vw, 1.9rem); 
+    margin: 12px 0;
 }
 
 .info-panel p {
-    font-size: clamp(1rem, 1.8vw, 1.2rem); 
+    font-size: clamp(1.3rem, 2.2vw, 2.2rem); 
     margin: 0; /* Убираем отступы у текста */
 }
 

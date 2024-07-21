@@ -325,11 +325,18 @@ document.getElementById("shopButton").addEventListener("click", () => {
   // Заменяем кнопку "Закрыть" на кнопку "Назад"
   Telegram.WebApp.BackButton.onClick(() => {
       document.getElementById("shop").style.display = "none"; // Скрываем магазин
-      Telegram.WebApp.BackButton.hide(); // Скрываем кнопку "Назад"
-      Telegram.WebApp.MainButton.show(); // Показываем основную кнопку (если она была скрыта)
+      
+      // Убираем все кнопки Telegram Web App (включая "Continue")
+      Telegram.WebApp.BackButton.hide();
+      Telegram.WebApp.MainButton.hide();
+
+      // Дополнительное действие для возврата на главный экран (если необходимо)
+      // Например, вы можете вызвать функцию, которая переключает на главный экран игры.
+      // showMainScreen(); // (пример)
   });
-  Telegram.WebApp.BackButton.show(); // Показываем кнопку "Назад"
-  Telegram.WebApp.MainButton.hide(); // Скрываем основную кнопку (если она есть)
+
+  Telegram.WebApp.BackButton.show();
+  Telegram.WebApp.MainButton.hide();
 });
 
 // Вызываем функции при загрузке страницы

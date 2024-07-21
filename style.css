@@ -109,17 +109,16 @@ body {
 }
 
 .round-button {
-    height: clamp(60px, 12vh, 90px);
+    height: min(90px, 12vh);
     border-radius: 25px;
     background-color: #ffd700;
     color: #002;
     border: none;
-    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    font-size: min(1.8rem, 2.5vw);
     font-weight: bold;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .round-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);

@@ -104,8 +104,8 @@ document.getElementById("shopButton").addEventListener("click", () => {
 // Функция для отображения магазина
 function displayShop() {
     const shop = document.getElementById("shop");
-    shop.innerHTML = ""; // Очищаем магазин
-  
+    shop.innerHTML = `<div class="shop-header"><h2>Магазин</h2></div>`; // Добавляем заголовок
+
     cars.forEach(car => {
       const shopItem = document.createElement("div");
       shopItem.classList.add("shop-item");

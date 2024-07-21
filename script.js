@@ -26,36 +26,100 @@ let balance = 10; // Начальный баланс пользователя
 let earnRate = 0;
 let topScore = 0;
 
+
+// Функция для получения изображения машинки по уровню
+function getCarImageByLevel(level) {
+  if (level <= cars.length) {
+      return cars[level - 1].image;
+  } else {
+      return "default_car_image.png"; // Или другое изображение по умолчанию
+  }
+}
+
+
+// Функция для отображения машинок в инвентаре (с поддержкой перетаскивания)
 function displayCars() {
-    const inventory = document.getElementById("inventory");
-    inventory.innerHTML = ""; // Очищаем инвентарь
-  
-    for (let i = 0; i < 12; i++) { 
+  const inventory = document.getElementById("inventory");
+  inventory.innerHTML = ""; 
+
+  for (let i = 0; i < 12; i++) {
       const carSlot = document.createElement("div");
       carSlot.classList.add("car-slot");
-  
-      if (i < ownedCars.length) {
-        const carImage = document.createElement("img");
-        carImage.src = ownedCars[i].image;
-        carImage.alt = ownedCars[i].name;
-        carSlot.appendChild(carImage);
-  
-        // Создаем элемент для отображения уровня только если есть машинка
-        const carLevel = document.createElement("div");
-        carLevel.classList.add("car-level");
-        carLevel.textContent = `Lvl ${ownedCars[i].level}`; // Отображаем уровень конкретной машинки
-        carSlot.appendChild(carLevel);
-      } 
-  
+      carSlot.draggable = true;
+      carSlot.dataset.index = i;
+
+      if (ownedCars[i]) {
+          let carImage = carSlot.querySelector("img");
+          if (!carImage) {
+              carImage = document.createElement("img");
+              carSlot.appendChild(carImage);
+          }
+          carImage.src = getCarImageByLevel(ownedCars[i].level);
+          carImage.alt = ownedCars[i].name;
+
+          let carLevel = carSlot.querySelector(".car-level");
+          if (!carLevel) {
+              carLevel = document.createElement("div");
+              carLevel.classList.add("car-level");
+              carSlot.appendChild(carLevel);
+          }
+          carLevel.textContent = `Lvl ${ownedCars[i].level}`;
+      }
+
+      carSlot.addEventListener("dragstart", dragStart);
+      carSlot.addEventListener("dragover", dragOver);
+      carSlot.addEventListener("drop", dragDrop);
+
       inventory.appendChild(carSlot);
-    }
   }
+}
+
+let draggedCarIndex = null;
+
+function dragStart(event) {
+  draggedCarIndex = parseInt(event.target.closest('.car-slot').dataset.index);
+  event.dataTransfer.effectAllowed = "move";
+}
+
+function dragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+}
+
+function dragDrop(event) {
+  event.preventDefault();
+  const targetSlot = event.target.closest('.car-slot');
+  const targetIndex = parseInt(targetSlot.dataset.index);
+
+  if (draggedCarIndex !== targetIndex) {
+      const draggedCar = ownedCars[draggedCarIndex];
+      const targetCar = ownedCars[targetIndex];
+
+      if (targetCar && draggedCar.level === targetCar.level) {
+          // Объединяем машинки
+          ownedCars[targetIndex] = {
+              ...draggedCar,
+              level: draggedCar.level + 1 // Увеличиваем уровень на 1
+          };
+          ownedCars[draggedCarIndex] = null; // Удаляем перетаскиваемую машинку
+      } else {
+          // Просто меняем машинки местами
+          [ownedCars[draggedCarIndex], ownedCars[targetIndex]] = [ownedCars[targetIndex], ownedCars[draggedCarIndex]];
+      }
+
+      displayCars(); // Перерисовываем инвентарь
+      updateEarnRate(); // Обновляем скорость заработка
+  }
+}
+
+
+
 
 // Функция для обновления скорости заработка
 function updateEarnRate() {
-    earnRate = ownedCars.reduce((sum, car) => sum + car.level, 0); // Суммируем уровни всех машинок
-    updateInfoPanels();
-  }
+  earnRate = ownedCars.reduce((sum, car) => sum + (car ? car.level : 0), 0); // Суммируем уровни всех машинок, учитывая null значения
+  document.getElementById("earnRate").textContent = `${earnRate}/мин`;
+}
 
 // Функция для заработка монет (вызывается каждую минуту)
 function earnCoins() {
@@ -74,25 +138,37 @@ function earnCoins() {
 // Обработчик события для кнопки "Купить" в магазине
 document.getElementById("shop").addEventListener("click", (event) => {
   if (event.target.classList.contains("buy-button")) {
-    if (ownedCars.length >= 12) { 
-      alert("Превышен лимит гаража");
-      return;
-    }
+      let occupiedSlots = ownedCars.filter(car => car !== null).length; // Подсчет занятых слотов
 
-    const carIndex = parseInt(event.target.dataset.carIndex);
-    const car = cars[carIndex];
+      if (occupiedSlots >= 12) {
+          alert("Превышен лимит гаража");
+          return;
+      }
 
-    if (balance >= car.price) {
-      balance -= car.price;
-      ownedCars.push(car); // Добавляем машинку в инвентарь
-      displayCars(); 
-      updateEarnRate(); 
-      updateInfoPanels(); 
-    } else {
-      // ... (сообщение о недостатке средств)
-    }
+      const carIndex = parseInt(event.target.dataset.carIndex);
+      const car = cars[carIndex];
+
+      if (balance >= car.price) {
+          balance -= car.price;
+
+          // Находим первый пустой слот
+          const emptySlotIndex = ownedCars.indexOf(null);
+          if (emptySlotIndex !== -1) {
+              ownedCars[emptySlotIndex] = car;
+          } else {
+              // Если нет пустых слотов, добавляем в конец
+              ownedCars.push(car);
+          }
+
+          displayCars();
+          updateEarnRate();
+          updateInfoPanels();
+      } else {
+          // ... (сообщение о недостатке средств)
+      }
   }
 });
+
 // Функция для анимации движения машинок
 function animateCars() {
   // ... (логика анимации)

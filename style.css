@@ -1,146 +1,158 @@
-/* Telegram Mini Apps Styling */
+/* Общие стили */
 body {
-    background-color: var(--tg-theme-bg-color); /* Используем переменные Telegram для адаптации к теме */
-    color: var(--tg-theme-text-color);
-    font-family: var(--tg-theme-font-family);
-  }
-  
-  /* Basic layout */
-  #app {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background: linear-gradient(to bottom, #f2c94c, #f2994a); /* Градиент желтого фона */
-    background-size: 100% 100%;
-    position: relative; /* Для позиционирования магазина */
-  }
-  
-  /* Стили для имитации клетчатого узора */
-  #app::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-      linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.1) 75%),
-      linear-gradient(45deg, rgba(0, 0, 0, 0.1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.1) 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 10px 10px;
-  }
-  
-  
-  #road {
-    background-color: lightgray; /* Цвет дороги */
-    height: 30%; 
-    overflow: hidden;
-  }
-  
-  /* Info panels */
-  #info-panels {
+    background-color: #002; /* Темно-синий фон */
+    font-family: 'Montserrat', sans-serif; /* Современный шрифт */
+    color: #fff; /* Белый цвет текста */
+    margin: 0;
+}
+
+/* Дорога */
+#road {
+    background-image: url("https://i.imgur.com/t9Lgj2X.jpg"); /* Замени на свою текстуру асфальта */
+    background-size: cover;
+    height: 30vh;
+}
+
+/* Информационные панели */
+#info-panels {
     display: flex;
     justify-content: space-around;
     width: 100%;
-    padding: 10px;
-  }
-  
-  .info-panel {
-    background-color: white;
-    border: 1px solid gray;
-    padding: 10px;
+    margin-top: 10px;
+}
+
+.info-panel {
+    background-color: rgba(0, 0, 0, 0.8); /* Полупрозрачный черный фон */
+    border: 2px solid #ffd700; /* Золотая рамка */
+    padding: 20px;
     text-align: center;
     flex: 1;
-    margin: 0 5px;
-  }
-  
-  .info-panel h3 {
-    font-size: 18px;
+    margin: 0 10px; /* Увеличиваем отступы между панелями */
+    border-radius: 5px; /* Уменьшаем скругление углов */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Тонкая тень */
+}
+
+.info-panel h3 {
+    font-size: 1.2rem;
     margin-bottom: 5px;
-  }
-  
-  .info-panel p {
-    font-size: 16px;
-  }
-  
-  /* Inventory */
-  #inventory {
+}
+
+.info-panel p {
+    font-size: 1rem;
+}
+
+/* Инвентарь */
+#inventory {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(3, 1fr);
     gap: 10px;
     padding: 10px;
-    height: 40%;
-  }
-  
-  .car-slot {
-    width: 100%;
-    height: 100%;
-    border: 1px solid black;
-    display: flex; /* Используем flexbox для центрирования */
-    align-items: center; /* Центрируем по вертикали */
-    justify-content: center; /* Центрируем по горизонтали */
-  }
-  
-  .car-slot img {
-    max-width: 100%; /* Изображение не выходит за пределы ячейки */
+    height: 40vh;
+    margin-top: 10px;
+}
+
+.car-slot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: 2px solid #333; /* Тонкая темная рамка */
+    border-radius: 5px;
+}
+
+.car-slot img {
+    max-width: 100%;
     max-height: 100%;
-  }
-  
-  /* Buttons */
-  #buttons {
+    transition: transform 0.3s ease;
+}
+
+.car-slot:hover img {
+    transform: scale(1.1);
+}
+
+.car-level {
+    position: absolute;
+    bottom: 5px; /* Перемещаем уровень вниз */
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #ffd700; /* Золотой текст уровня */
+    padding: 2px 5px;
+    font-size: 0.8rem;
+    border-radius: 5px;
+}
+
+/* Кнопки */
+#buttons {
     display: flex;
     justify-content: space-around;
     padding: 10px;
-  }
-  
-  .round-button {
-    width: 80px;
-    height: 80px;
+    margin-top: 10px;
+}
+
+.round-button {
+    width: 100px; /* Увеличиваем размер кнопок */
+    height: 100px;
     border-radius: 50%;
-    background-color: blue;
-    color: white;
+    background: linear-gradient(to bottom, #ffd700, #daa520); /* Золотой градиент */
+    color: #002; /* Темно-синий цвет текста */
     border: none;
-  }
-  
-  /* Shop */
-  #shop {
-    display: none; /* Изначально скрыт */
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Тонкая тень */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.round-button:hover {
+    transform: translateY(-2px); /* Поднимаем кнопку при наведении */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Усиливаем тень при наведении */
+}
+
+/* Магазин */
+#shop {
+    display: flex;
     flex-direction: column;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.8);
     align-items: center;
     justify-content: center;
     padding: 20px;
-  }
-  
-  .shop-item {
+    border-radius: 10px;
+    z-index: 10; /* Чтобы магазин был поверх других элементов */
+}
+
+.shop-item {
     display: flex;
     align-items: center;
-    background-color: white;
+    background-color: #222; /* Темно-серый фон для элементов магазина */
+    color: #fff;
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
-  }
-  
-  .shop-item img {
+    border: 1px solid #ffd700; /* Золотая рамка для элементов магазина */
+}
+
+.shop-item img {
     width: 50px;
     height: 50px;
     margin-right: 10px;
-  }
-  
-  /* Media queries for responsiveness */
-  @media (max-width: 600px) {
-    #info-panels {
-      flex-direction: column; 
-    }
-  
-    .info-panel {
-      margin-bottom: 10px;
-    }
-  }
-  
+}
+
+.shop-item .buy-button {
+    background-color: #ffd700; /* Золотой фон кнопки */
+    color: #002; /* Темно-синий цвет текста кнопки */
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.shop-item .buy-button:hover {
+    background-color: #daa520; /* Темно-золотой фон при наведении */
+}

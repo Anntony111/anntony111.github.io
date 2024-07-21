@@ -16,12 +16,11 @@ let balance = 10; // Начальный баланс пользователя
 let earnRate = 0;
 let topScore = 0;
 
-// Функция для отображения машинок в инвентаре
 function displayCars() {
     const inventory = document.getElementById("inventory");
-    inventory.innerHTML = ""; 
+    inventory.innerHTML = ""; // Очищаем инвентарь
   
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 12; i++) { 
       const carSlot = document.createElement("div");
       carSlot.classList.add("car-slot");
   
@@ -30,17 +29,18 @@ function displayCars() {
         carImage.src = ownedCars[i].image;
         carImage.alt = ownedCars[i].name;
         carSlot.appendChild(carImage);
-      } else {
-        const placeholderImage = document.createElement("img");
-        placeholderImage.src = "empty_slot.png"; 
-        placeholderImage.alt = "Empty Slot";
-        carSlot.appendChild(placeholderImage);
-      }
   
-      inventory.appendChild(carSlot); 
+        // Создаем элемент для отображения уровня только если есть машинка
+        const carLevel = document.createElement("div");
+        carLevel.classList.add("car-level");
+        carLevel.textContent = `Lvl ${ownedCars[i].level}`; // Отображаем уровень конкретной машинки
+        carSlot.appendChild(carLevel);
+      } 
+  
+      inventory.appendChild(carSlot);
     }
   }
-  
+
 // Функция для обновления скорости заработка
 function updateEarnRate() {
     earnRate = ownedCars.reduce((sum, car) => sum + car.level, 0); // Суммируем уровни всех машинок
@@ -63,26 +63,26 @@ function earnCoins() {
   
 // Обработчик события для кнопки "Купить" в магазине
 document.getElementById("shop").addEventListener("click", (event) => {
-    if (event.target.classList.contains("buy-button")) {
-      if (ownedCars.length >= 12) { // Проверяем, есть ли место в инвентаре
-        alert("Вы достигли максимального количества автомобилей");
-        return;
-      }
-  
-      const carIndex = parseInt(event.target.dataset.carIndex);
-      const car = cars[carIndex];
-  
-      if (balance >= car.price) {
-        balance -= car.price;
-        ownedCars.push(car); // Добавляем машинку в инвентарь
-        displayCars(); 
-        updateEarnRate(); 
-        updateInfoPanels(); 
-      } else {
-        // ... (сообщение о недостатке средств)
-      }
+  if (event.target.classList.contains("buy-button")) {
+    if (ownedCars.length >= 12) { 
+      alert("Превышен лимит гаража");
+      return;
     }
-  });
+
+    const carIndex = parseInt(event.target.dataset.carIndex);
+    const car = cars[carIndex];
+
+    if (balance >= car.price) {
+      balance -= car.price;
+      ownedCars.push(car); // Добавляем машинку в инвентарь
+      displayCars(); 
+      updateEarnRate(); 
+      updateInfoPanels(); 
+    } else {
+      // ... (сообщение о недостатке средств)
+    }
+  }
+});
 // Функция для анимации движения машинок
 function animateCars() {
   // ... (логика анимации)

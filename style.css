@@ -169,6 +169,18 @@ body {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
+
+#closeShopButton {
+    /* Стили для кнопки */
+    background-color: #ffd700; /* 
+    color: white;          /* Белый текст */
+    border: none;          /* Без рамки */
+    padding: 15px 40px;    /* Отступы */
+    cursor: pointer;       /* Курсор в виде руки */
+}
+
+
+
 /* Магазин */
 #shop {
     display: flex;

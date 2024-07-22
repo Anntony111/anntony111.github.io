@@ -248,8 +248,11 @@ document.getElementById("shopButton").addEventListener("click", () => {
 
 // Функция для отображения магазина
 function displayShop() {
-    const shop = document.getElementById("shop");
-    shop.innerHTML = `<div class="shop-header"><h2>Магазин</h2></div>`; // Добавляем заголовок
+  const shop = document.getElementById("shop");
+  shop.innerHTML = `
+      <div class="shop-header">
+          <h2>Магазин</h2>
+          <button id="closeShopButton">Закрыть</button> </div>`;
 
     cars.forEach(car => {
       const shopItem = document.createElement("div");
@@ -269,8 +272,20 @@ function displayShop() {
       shopItem.appendChild(carInfo);
   
       shop.appendChild(shopItem);
+      
     });
   }
+  
+   // Обработчик события для кнопки "Закрыть" (вынесен за пределы displayShop)
+document.getElementById("shop").addEventListener("click", (event) => {
+  if (event.target.id === "closeShopButton") {
+      document.getElementById("shop").style.display = "none";
+  }
+});
+
+
+
+
   
   // Обработчик события для кнопки "Магазин"
   document.getElementById("shopButton").addEventListener("click", () => {
@@ -317,34 +332,6 @@ function displayShop() {
     appElement.style.maxHeight = desiredHeight + 'px';
 }
 
-// Обработчик события для кнопки "Магазин"
-document.getElementById("shopButton").addEventListener("click", () => {
-  displayShop();
-  document.getElementById("shop").style.display = "flex";
-
-  // Заменяем кнопку "Закрыть" на кнопку "Назад"
-  Telegram.WebApp.BackButton.onClick(() => {
-      document.getElementById("shop").style.display = "none"; // Скрываем магазин
-
-      // Убираем все кнопки Telegram Web App (включая "Continue")
-      Telegram.WebApp.BackButton.hide();
-      Telegram.WebApp.MainButton.hide();
-
-      // Дополнительное действие для возврата на главный экран (если необходимо)
-      // showMainScreen(); // (пример)
-
-      // Принудительно скрываем кнопку "Continue" через некоторое время
-      setTimeout(() => {
-          const continueButton = document.querySelector('.tgme_widget_web_app_continue_button');
-          if (continueButton) {
-              continueButton.style.display = 'none';
-          }
-      }, 100); // Задержка в 100 миллисекунд
-  });
-
-  Telegram.WebApp.BackButton.show();
-  Telegram.WebApp.MainButton.hide();
-});
 
 // Вызываем функции при загрузке страницы
 displayCars();

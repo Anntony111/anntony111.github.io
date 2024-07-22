@@ -338,6 +338,55 @@ document.addEventListener('DOMContentLoaded', function() {
   backgroundMusic.play();
 });
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const cloud = document.getElementById('cloud');
+  let posX = 0;
+  let posY = 0;
+  let directionX = 1;
+  let directionY = 1;
+
+  function animateCloud() {
+      posX += directionX * 0.5;
+      posY += directionY * 0.2;
+
+      if (posX > window.innerWidth - cloud.offsetWidth || posX < 0) {
+          directionX *= -1;
+      }
+      if (posY > window.innerHeight - cloud.offsetHeight || posY < 0) {
+          directionY *= -1;
+      }
+
+      cloud.style.transform = `translate(${posX}px, ${posY}px)`;
+      requestAnimationFrame(animateCloud);
+  }
+
+  animateCloud();
+});
+
+window.addEventListener('load', () => {
+  // ... (запуск музыки)
+
+  const clouds = document.querySelectorAll('.cloud');
+
+  clouds.forEach((cloud, index) => {
+      // Начальные позиции облаков (в пикселях)
+      const top = 20 + index * 50; // Начинаем с 10px и увеличиваем на 15px для каждого облака
+      const left = -cloud.offsetWidth - (index * 100); // Начинаем за левой границей экрана
+
+      cloud.style.top = top + 'px';
+      cloud.style.left = left + 'px';
+  });
+});
+
+
+
+document.getElementById('playMusicButton').addEventListener('click', function() {
+  var audio = document.getElementById('backgroundMusic');
+  audio.play();
+});
+
+
 // Вызываем функции при загрузке страницы
 displayCars();
 updateInfoPanels();

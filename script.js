@@ -1,3 +1,71 @@
+// Инициализация IndexedDB
+const dbName = "CarGameDB";
+let db;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(dbName, 1);
+
+    request.onupgradeneeded = (event) => {
+      db = event.target.result;
+      const objectStore = db.createObjectStore("users", { keyPath: "telegram_id" });
+      objectStore.createIndex("balance", "balance", { unique: false });
+      objectStore.createIndex("car_slots", "car_slots", { unique: false });
+    };
+
+    request.onsuccess = (event) => {
+      db = event.target.result;
+      resolve(db);
+    };
+
+    request.onerror = (event) => {
+      reject("Error opening database: " + event.target.errorCode);
+    };
+  });
+}
+
+
+async function getUserData(telegramId) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["users"], "readonly");
+    const objectStore = transaction.objectStore("users");
+    const request = objectStore.get(telegramId);
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      reject("Error getting user data: " + event.target.errorCode);
+    };
+  });
+}
+
+async function saveUserData(userData) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(["users"], "readwrite");
+    const objectStore = transaction.objectStore("users");
+    const request = objectStore.put(userData);
+
+    request.onsuccess = () => {
+      resolve();
+    };
+
+    request.onerror = (event) => {
+      reject("Error saving user data: " + event.target.errorCode);
+    };
+  });
+}
+
+
+
+
+
+
+
+
 // Инициализация Telegram Web App
 Telegram.WebApp.ready();
 
@@ -20,6 +88,7 @@ const cars = [
 
 let ownedCars = new Array(12).fill(null); // Создаем массив из 12 пустых слотов для машинок
 
+
 // Переменные для хранения данных
 let balance = 10; // Начальный баланс пользователя
 let earnRate = 0;
@@ -29,11 +98,75 @@ let topScore = 0;
 // Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
   if (level <= cars.length) {
-      return cars[level - 1].image;
+    return cars[level - 1].image;
   } else {
-      return "default_car_image.png"; // Или другое изображение по умолчанию
+    return "default_car_image.png"; // Или другое изображение по умолчанию
   }
 }
+
+
+async function loadUserData() {
+  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+
+  if (telegramId) {
+    try {
+      let userData = await getUserData(telegramId);
+
+      if (!userData) {
+        userData = {
+          telegram_id: telegramId,
+          balance: 10,
+          car_slots: ',,,,,,,,,,,',
+        };
+        await saveUserData(userData);
+      }
+
+      // --- Обновление данных игры ---
+      balance = userData.balance;
+      ownedCars = userData.car_slots.split(',').map(slot => {
+        if (slot) {
+          const car = cars.find(c => c.name === slot);
+          return car ? { ...car } : null;
+        }
+        return null;
+      });
+      // --- Конец обновления данных ---
+
+      document.getElementById('balance').textContent = balance;
+      displayCars();
+      updateEarnRate();
+    } catch (error) {
+      console.error("Ошибка при загрузке данных пользователя:", error);
+      // Здесь можно добавить код для отображения сообщения об ошибке пользователю
+      alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
+    }
+  } else {
+    console.error("Данные пользователя Telegram недоступны.");
+    // Здесь можно добавить код для отображения сообщения об ошибке пользователю
+    alert("Не удалось получить данные пользователя Telegram.");
+  }
+}
+
+
+
+async function saveUserProgress() {
+  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  const carSlots = ownedCars.map(car => car ? car.name : '').join(',');
+  const userData = {
+    telegram_id: telegramId,
+    balance: balance,
+    car_slots: carSlots
+  };
+  await saveUserData(userData);
+}
+
+document.addEventListener('DOMContentLoaded', loadUserData);
+
+document.getElementById('someActionButton').addEventListener('click', async () => {
+  balance += 100; // Пример изменения баланса
+  await saveUserProgress();
+  document.getElementById('balance').textContent = balance;
+});
 
 
 function displayCars() {
@@ -188,17 +321,13 @@ function updateEarnRate() {
 
 // Функция для заработка монет (вызывается каждую минуту)
 function earnCoins() {
-    balance += earnRate;
-    updateInfoPanels();
-  }
+  balance += earnRate;
+  updateInfoPanels();
+}
   
-  setInterval(earnCoins, 600); // Запускаем заработок монет каждую минуту
+setInterval(earnCoins, 60000); // Запускаем заработок монет каждую минуту
 
-// Функция для заработка монет (вызывается каждую минуту)
-function earnCoins() {
-    balance += earnRate;
-    updateInfoPanels();
-  }
+
   
   document.getElementById("shop").addEventListener("click", (event) => {
     if (event.target.classList.contains("buy-button")) {
@@ -391,3 +520,45 @@ document.getElementById('playMusicButton').addEventListener('click', function() 
 displayCars();
 updateInfoPanels();
 // animateCars(); // Запустите анимацию, когда она будет готова
+
+
+
+document.getElementById('profileButton').addEventListener('click', () => {
+  const profileMenu = document.getElementById('profileMenu');
+  profileMenu.classList.toggle('open'); // Переключаем класс "open"
+});
+
+document.getElementById('closeProfileButton').addEventListener('click', () => {
+  document.getElementById('profileMenu').classList.remove('open');
+});
+
+
+async function showProfile() {
+  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  const userData = await getUserData(telegramId);
+
+  if (userData) {
+    document.getElementById('profileName').textContent = userData.username;
+    document.getElementById('profileB1').textContent = userData.balance;
+    // ... (заполнение остальных полей)
+
+    document.getElementById('profileMenu').style.display = 'block'; // Показываем меню
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const profileButton = document.getElementById('profileButton');
+  const profileMenu = document.getElementById('profileMenu');
+  const closeProfileButton = document.getElementById('closeProfileButton');
+
+  profileButton.addEventListener('click', () => {
+      profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
+  });
+
+  closeProfileButton.addEventListener('click', () => {
+      profileMenu.style.display = 'none';
+  });
+});
+
+// Вызываем функцию при загрузке страницы или при нажатии на кнопку профиля
+showProfile();

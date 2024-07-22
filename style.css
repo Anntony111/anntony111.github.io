@@ -1,4 +1,9 @@
 
+
+
+
+
+
 /* Общие стили */
 body {
     background-color: #1a1a1a;
@@ -282,7 +287,8 @@ body {
     width: 200px;
     height: 60px;
     background-size: cover;
-    animation: moveClouds 15s linear infinite;
+    animation: moveClouds 12s linear infinite;
+    z-index: 1
 }
 
 #cloud1 {
@@ -290,6 +296,7 @@ body {
     left: -100px;
     background-image: url('cloud1.png');
     animation-delay: 0s;
+    z-index: 1
 }
 
 #cloud2 {
@@ -297,6 +304,7 @@ body {
     left: -200px;
     background-image: url('cloud2.png');
     animation-delay: 5s;
+    z-index: 1
 }
 
 #cloud3 {
@@ -304,6 +312,7 @@ body {
     left: -300px;
     background-image: url('cloud3.png');
     animation-delay: 8s;
+    z-index: 1
 }
 
 #cloud4 {
@@ -311,6 +320,7 @@ body {
     left: -400px;
     background-image: url('cloud4.png');
     animation-delay: 10s;
+    z-index: 1
 }
 
 @keyframes moveClouds {
@@ -320,4 +330,58 @@ body {
     100% {
         transform: translateX(100vw);
     }
+}
+
+
+#profileButton {
+    position: fixed;
+    top: 40px;
+    left: 30px; /* Перемещаем кнопку влево */
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+#profileButton img {
+    width: 80px; /* Увеличиваем размер иконки в 2 раза */
+    height: 80px;
+}
+
+#profileMenu {
+    /* ... (стили для содержимого меню) */
+    position: fixed;
+    top: 0;
+    left: -100%; /* Изначально меню скрыто за левой границей */
+    width: 80%; /* Ширина меню */
+    max-width: 300px; /* Максимальная ширина меню */
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    z-index: 11; /* Устанавливаем z-index выше, чем у других элементов */
+    transition: left 0.3s ease-in-out; /* Анимация открытия меню */
+}
+
+#profileMenu.open {
+    left: 0; /* Открываем меню */
+}
+
+#profileContainer {
+    position: fixed;
+    top: 120px;
+    left: 33px; 
+    display: flex; /* Располагаем элементы вертикально */
+    flex-direction: column;
+    align-items: center; /* Центрируем элементы по горизонтали */
+    z-index: 2
+}
+
+
+#profileLabel {
+    background-color: #ffd700; /* Цвет фона как у кнопок */
+    color: #002; /* Цвет текста */
+    padding: 5px 10px; /* Отступы */
+    border-radius: 25px; /* Скругленные углы */
+    font-size: 1.3rem; /* Размер шрифта */
+    font-weight: bold;
+    margin-top: 5px; /* Отступ сверху от кнопки */
 }

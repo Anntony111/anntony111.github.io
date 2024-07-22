@@ -332,6 +332,11 @@ document.getElementById("shop").addEventListener("click", (event) => {
     appElement.style.maxHeight = desiredHeight + 'px';
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+  var backgroundMusic = document.getElementById('backgroundMusic');
+  backgroundMusic.volume = 0.1; // Установите громкость на 10%
+  backgroundMusic.play();
+});
 
 // Вызываем функции при загрузке страницы
 displayCars();

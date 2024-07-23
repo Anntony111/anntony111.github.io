@@ -35,39 +35,39 @@ async function initializeProfile() {
     const telegramUserId = Telegram.WebApp.initDataUnsafe.user.id;
   
     const { data: existingUser, error } = await supabase
-      .from('userr')
-      .select('telegram_id, users, balance, b3, inventory')
-      .eq('telegram_id', telegramUserId)
-      .single();
+        .from('userr')
+        .select('telegram_id, users, balance, b2, b3, inventory')
+        .eq('telegram_id', telegramUserId)
+        .single();
 
-  if (error) {
-    console.error(error);
-  } else if (existingUser) {
-    updateProfileUI(existingUser);
-  } else {
-    const userName = await getTelegramUserName(); // Получаем имя пользователя
-    const { error: insertError } = await supabase
-      .from('users')
-      .insert({ telegram_id: telegramUserId, name: userName }); // Добавляем имя при создании профиля
-
-    if (insertError) {
-      console.error(insertError);
+    if (error) {
+        console.error(error);
+    } else if (existingUser) {
+        updateProfileUI(existingUser);
     } else {
-      initializeProfile(); 
+        const userName = await getTelegramUserName();
+        const { error: insertError } = await supabase
+            .from('userr') 
+            .insert({ telegram_id: telegramUserId, users: userName }); 
+
+        if (insertError) {
+            console.error(insertError);
+        } else {
+            updateProfileUI({ telegram_id: telegramUserId, users: userName, balance: 0, b2: 0, b3: 0 }); 
+        }
     }
-  }
 }
 
 function updateProfileUI(user) {
     telegramIdElement.textContent = user.telegram_id;
-    userNameElement.textContent = user.userr;
-    carCBalanceElement.textContent = user.balance || 0; // Отображаем 0, если баланс не определен
+    userNameElement.textContent = user.users; // Изменено с user.userr на user.users
+    carCBalanceElement.textContent = user.balance || 0; 
     carRBalanceElement.textContent = user.b2 || 0;
     carTBalanceElement.textContent = user.b3 || 0;
-}
 
 profileButton.addEventListener("click", () => {
   profileMenu.style.display = profileMenu.style.display === "none" ? "block" : "none";
 });
 
 initializeProfile();
+}

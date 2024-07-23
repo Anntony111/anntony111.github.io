@@ -1,70 +1,62 @@
-// Инициализация IndexedDB
-const dbName = "CarGameDB";
-let db;
+import { createClient } from '@supabase/supabase-js';
 
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, 1);
+const supabase = createClient(
+  'https://zomctncvpyijkfswdqjd.supabase.co', 
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvbWN0bmN2cHlpamtmc3dkcWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE2OTY4NDIsImV4cCI6MjAzNzI3Mjg0Mn0.2umISx4mFtp5xWdEhmzgHRO8oYsocrPpf2c6pOTYDXM'
+);
 
-    request.onupgradeneeded = (event) => {
-      db = event.target.result;
-      const objectStore = db.createObjectStore("users", { keyPath: "telegram_id" });
-      objectStore.createIndex("balance", "balance", { unique: false });
-      objectStore.createIndex("car_slots", "car_slots", { unique: false });
-    };
-
-    request.onsuccess = (event) => {
-      db = event.target.result;
-      resolve(db);
-    };
-
-    request.onerror = (event) => {
-      reject("Error opening database: " + event.target.errorCode);
-    };
-  });
-}
-
-
+// Получение данных пользователя
 async function getUserData(telegramId) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(["users"], "readonly");
-    const objectStore = transaction.objectStore("users");
-    const request = objectStore.get(telegramId);
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .single();
 
-    request.onsuccess = (event) => {
-      resolve(event.target.result);
-    };
-
-    request.onerror = (event) => {
-      reject("Error getting user data: " + event.target.errorCode);
-    };
-  });
+  if (error) {
+    console.error('Ошибка получения данных:', error);
+    return null; // Или создайте нового пользователя
+  } else {
+    return data;
+  }
 }
 
-async function saveUserData(userData) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(["users"], "readwrite");
-    const objectStore = transaction.objectStore("users");
-    const request = objectStore.put(userData);
+// Обновление данных пользователя (баланс, инвентарь и т.д.)
+async function updateUserData(telegramId, updates) {
+  const { error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('telegram_id', telegramId);
 
-    request.onsuccess = () => {
-      resolve();
-    };
-
-    request.onerror = (event) => {
-      reject("Error saving user data: " + event.target.errorCode);
-    };
-  });
+  if (error) {
+    console.error('Ошибка обновления данных:', error);
+  }
 }
 
 
+// При загрузке приложения
+Telegram.WebApp.ready();
+const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
+(async () => {
+  const userData = await getUserData(telegramId);
 
+  if (userData) {
+    balance = userData.balance;
+    ownedCars = userData.inventory; // Предполагаем, что структура инвентаря соответствует вашему коду
+    // Загрузите другие данные из userData (b2, b3)
+  } else {
+    // Создайте нового пользователя в базе данных, если его нет
+    await supabase
+      .from('users')
+      .insert({ telegram_id: telegramId });
+  }
 
-
-
+  // Обновите интерфейс с данными из базы данных
+  displayCars();
+  updateEarnRate();
+  updateInfoPanels();
+})();
 
 // Инициализация Telegram Web App
 Telegram.WebApp.ready();
@@ -86,87 +78,24 @@ const cars = [
   { name: "10", image: "sports_car.png", level: 10, price: 10000000000 },
 ];
 
-let ownedCars = new Array(12).fill(null); // Создаем массив из 12 пустых слотов для машинок
 
 
 // Переменные для хранения данных
-let balance = 10; // Начальный баланс пользователя
+let balance = 0; // Начальный баланс будет загружен из базы данных
 let earnRate = 0;
 let topScore = 0;
+let ownedCars = []; // Инвентарь будет загружен из базы данных
+
 
 
 // Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
   if (level <= cars.length) {
-    return cars[level - 1].image;
+      return cars[level - 1].image;
   } else {
-    return "default_car_image.png"; // Или другое изображение по умолчанию
+      return "default_car_image.png"; // Или другое изображение по умолчанию
   }
 }
-
-
-async function loadUserData() {
-  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-
-  if (telegramId) {
-    try {
-      let userData = await getUserData(telegramId);
-
-      if (!userData) {
-        userData = {
-          telegram_id: telegramId,
-          balance: 10,
-          car_slots: ',,,,,,,,,,,',
-        };
-        await saveUserData(userData);
-      }
-
-      // --- Обновление данных игры ---
-      balance = userData.balance;
-      ownedCars = userData.car_slots.split(',').map(slot => {
-        if (slot) {
-          const car = cars.find(c => c.name === slot);
-          return car ? { ...car } : null;
-        }
-        return null;
-      });
-      // --- Конец обновления данных ---
-
-      document.getElementById('balance').textContent = balance;
-      displayCars();
-      updateEarnRate();
-    } catch (error) {
-      console.error("Ошибка при загрузке данных пользователя:", error);
-      // Здесь можно добавить код для отображения сообщения об ошибке пользователю
-      alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
-    }
-  } else {
-    console.error("Данные пользователя Telegram недоступны.");
-    // Здесь можно добавить код для отображения сообщения об ошибке пользователю
-    alert("Не удалось получить данные пользователя Telegram.");
-  }
-}
-
-
-
-async function saveUserProgress() {
-  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  const carSlots = ownedCars.map(car => car ? car.name : '').join(',');
-  const userData = {
-    telegram_id: telegramId,
-    balance: balance,
-    car_slots: carSlots
-  };
-  await saveUserData(userData);
-}
-
-document.addEventListener('DOMContentLoaded', loadUserData);
-
-document.getElementById('someActionButton').addEventListener('click', async () => {
-  balance += 100; // Пример изменения баланса
-  await saveUserProgress();
-  document.getElementById('balance').textContent = balance;
-});
 
 
 function displayCars() {
@@ -321,40 +250,53 @@ function updateEarnRate() {
 
 // Функция для заработка монет (вызывается каждую минуту)
 function earnCoins() {
-  balance += earnRate;
-  updateInfoPanels();
-}
+    balance += earnRate;
+    updateInfoPanels();
+  }
   
-setInterval(earnCoins, 60000); // Запускаем заработок монет каждую минуту
+  setInterval(earnCoins, 600); // Запускаем заработок монет каждую минуту
 
+// Функция для заработка монет (вызывается каждую минуту)
+function earnCoins() {
+    balance += earnRate;
+    updateInfoPanels();
+  }
+  
+  // Обработчик события для покупки машины
+document.getElementById("shop").addEventListener("click", async (event) => {
+  if (event.target.classList.contains("buy-button")) {
+    const carIndex = parseInt(event.target.dataset.carIndex);
+    const car = cars[carIndex];
 
-  
-  document.getElementById("shop").addEventListener("click", (event) => {
-    if (event.target.classList.contains("buy-button")) {
-      const carIndex = parseInt(event.target.dataset.carIndex);
-      const car = cars[carIndex];
-  
-      if (balance >= car.price) {
-        balance -= car.price;
-  
-        // Находим первый пустой слот (более эффективный способ)
-        const emptySlotIndex = ownedCars.findIndex(slot => slot === null);
-  
-        if (emptySlotIndex !== -1) {
-          ownedCars[emptySlotIndex] = { ...car }; // Копируем данные машинки
-        } else {
-          alert("Превышен лимит гаража!");
-          return; 
-        }
-  
+    // Получаем данные пользователя из базы данных
+    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+    const userData = await getUserData(telegramId);
+
+    if (userData && userData.balance >= car.price) {
+      // Проверяем, есть ли место в инвентаре
+      const emptySlotIndex = userData.inventory.findIndex(slot => slot === null);
+
+      if (emptySlotIndex !== -1) {
+        // Обновляем данные в базе данных
+        const newBalance = userData.balance - car.price;
+        const newInventory = [...userData.inventory]; 
+        newInventory[emptySlotIndex] = { level: car.level };
+
+        await updateUserData(telegramId, { balance: newBalance, inventory: newInventory });
+
+        // Обновляем данные в локальных переменных и интерфейсе
+        balance = newBalance;
+        ownedCars = newInventory;
         displayCars();
-        updateEarnRate();
         updateInfoPanels();
       } else {
-        alert("Недостаточно средств!");
+        alert("Превышен лимит гаража!");
       }
+    } else {
+      alert("Недостаточно средств!");
     }
-  });
+  }
+});
   
 
 // Функция для анимации движения машинок
@@ -562,3 +504,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Вызываем функцию при загрузке страницы или при нажатии на кнопку профиля
 showProfile();
+
+
+

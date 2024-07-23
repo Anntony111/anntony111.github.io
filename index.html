@@ -6,7 +6,25 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body id="body">
+    <div id="profileContainer">
+        <button id="profileButton">
+            <img src="menu.png" alt="Меню"> 
+        </button>
+        <div id="profileLabel">Profile</div> 
+    </div> 
+
     <div id="app">
+        <div id="profileMenu" style="display: none;"> 
+            <h2>Профиль</h2>
+            <p>Имя: <span id="profileName"></span></p>
+            <p>B1: <span id="profileB1"></span></p>
+            <p>B2: <span id="profileB2"></span></p>
+            <p>B3: <span id="profileB3"></span></p>
+            <p>Рефералы: <span id="profileReferrals"></span></p>
+            <p>Ваш REF код: <span id="profileUserRef"></span></p>
+            <button id="closeProfileButton">Закрыть</button>
+        </div>
+
         <div id="info-panels">
             <div class="info-panel">
                 <h3>Баланс</h3>
@@ -36,11 +54,9 @@
         <div id="shop" style="display: none;"></div>
     </div>
 
-    <!-- Добавьте этот элемент -->
     <audio id="backgroundMusic" src="fon.mp3" loop></audio>
     <button id="playMusicButton">Включить музыку</button>
 
-    <!-- Элементы для анимации облаков -->
     <div class="cloud" id="cloud1"></div>
     <div class="cloud" id="cloud2"></div>
     <div class="cloud" id="cloud3"></div>

@@ -33,27 +33,28 @@ async function getTelegramUserName() {
 
 async function initializeProfile() {
     const telegramUserId = Telegram.WebApp.initDataUnsafe.user.id;
-  
-    const { data: existingUser, error } = await supabase
-        .from('userr')
-        .select('telegram_id, users, balance, b2, b3, inventory')
+
+    const { data, error } = await supabase
+        .from('telegram_users') // Используем новую таблицу
+        .select('telegram_id')
         .eq('telegram_id', telegramUserId)
         .single();
 
     if (error) {
-        console.error(error);
-    } else if (existingUser) {
-        updateProfileUI(existingUser);
+        console.error('Ошибка при получении данных:', error);
+    } else if (data) {
+        // Пользователь найден
+        telegramIdElement.textContent = data.telegram_id;
     } else {
-        const userName = await getTelegramUserName();
+        // Пользователь не найден, добавляем его в базу данных
         const { error: insertError } = await supabase
-            .from('userr') 
-            .insert({ telegram_id: telegramUserId, users: userName }); 
+            .from('telegram_users')
+            .insert({ telegram_id: telegramUserId });
 
         if (insertError) {
-            console.error(insertError);
+            console.error('Ошибка при добавлении пользователя:', insertError);
         } else {
-            updateProfileUI({ telegram_id: telegramUserId, users: userName, balance: 0, b2: 0, b3: 0 }); 
+            telegramIdElement.textContent = telegramUserId;
         }
     }
 }
@@ -71,3 +72,5 @@ profileButton.addEventListener("click", () => {
 
 initializeProfile();
 }
+
+document.addEventListener('DOMContentLoaded', initializeProfile);

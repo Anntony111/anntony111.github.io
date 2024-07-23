@@ -35,8 +35,8 @@ async function initializeProfile() {
     const telegramUserId = Telegram.WebApp.initDataUnsafe.user.id;
   
     const { data: existingUser, error } = await supabase
-      .from('users')
-      .select('telegram_id, userr, balance, b3, inventory')
+      .from('userr')
+      .select('telegram_id, users, balance, b3, inventory')
       .eq('telegram_id', telegramUserId)
       .single();
 

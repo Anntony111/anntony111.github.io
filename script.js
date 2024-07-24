@@ -27,7 +27,6 @@ const dbRef = database.ref();
 
  
 
-import { doc, getDoc } from "firebase/firestore";
 
 async function getUserData(telegramId) {
   try {

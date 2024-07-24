@@ -87,26 +87,29 @@ async function getUserData(telegramId) {
 // Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
-    // Проверяем, что inventory - это массив
-    if (updates.inventory && !Array.isArray(updates.inventory)) {
-      throw new Error('Inventory data must be an array');
-    }
+    const userRef = dbRef.child(`users/${telegramId}`);
 
-    // Преобразуем inventory в объект, если это массив
-    if (Array.isArray(updates.inventory)) {
-      const inventoryObj = {};
+    // Обновляем каждый слот инвентаря отдельно
+    if (updates.inventory) {
+      const inventoryRef = userRef.child('inventory');
+      const inventoryUpdates = {}; // Создаем объект для обновления инвентаря
+
       for (let i = 0; i < updates.inventory.length; i++) {
-        inventoryObj[i] = updates.inventory[i];
+        inventoryUpdates[i.toString()] = updates.inventory[i]; // Используем строковый ключ
       }
-      updates.inventory = inventoryObj;
+
+      await inventoryRef.update(inventoryUpdates); // Обновляем инвентарь в базе данных
+      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
-    await dbRef.child(`users/${telegramId}`).update(updates);
+    // Обновляем остальные поля
+    await userRef.update(updates);
   } catch (error) {
     console.error('Error updating user data:', error);
     throw error;
   }
 }
+
 
 const connectingMessage = document.createElement('p');
 connectingMessage.textContent = 'Соединение с базой данных...';
@@ -130,18 +133,18 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
         username: username,
         name: name,
         balance: 0,
-        inventory: {}, // Изначально пустой объект inventory
+        inventory: {}, // Создаем пустой объект inventory
         topScore: 0,
         created_at: new Date().toISOString()
       };
 
       // Заполняем inventory машинами по умолчанию
       for (let i = 0; i < 12; i++) {
-        newUserData.inventory[i] = { level: 0, name: `Car ${i + 1}` };
+        newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
       }
 
       await updateUserData(telegramId, newUserData);
-      userData = newUserData;
+      userData = await getUserData(telegramId); // Получаем обновленные данные
       console.log('Default profile created:', userData);
     }
 

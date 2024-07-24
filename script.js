@@ -357,38 +357,51 @@ setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
   
 document.getElementById("shop").addEventListener("click", async (event) => {
   if (event.target.classList.contains("buy-button")) {
-    const carIndex = parseInt(event.target.dataset.carIndex);
-    const car = cars[carIndex];
-    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+      const carIndex = parseInt(event.target.dataset.carIndex);
+      const car = cars[carIndex];
+      const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
-    if (balance >= car.price) {
-      balance -= car.price;  // Уменьшаем баланс на стоимость машинки
+      if (balance >= car.price) {
+          balance -= car.price;
 
-      const emptySlotIndex = ownedCars.findIndex(slot => slot === null);
+          const emptySlotIndex = ownedCars.findIndex(slot => slot === null);
 
-      if (emptySlotIndex !== -1) {
-        ownedCars[emptySlotIndex] = { ...car };
+          if (emptySlotIndex !== -1) {
+              ownedCars[emptySlotIndex] = { ...car };
 
-        // Обновляем данные в базе данных
-        await updateUserData(telegramId, {
-          balance, // Обновляем баланс в базе данных
-          inventory: JSON.stringify(ownedCars),
-          topScore,
-          carRef,
-          carTop
-        });
+              // Создаем копию ownedCars перед обновлением
+              const updatedOwnedCars = [...ownedCars];
 
-        displayCars();
-        updateEarnRate();
-        updateInfoPanels(); // Обновляем отображение баланса
+              // Обновляем данные в базе данных с копией
+              try {
+                  await updateUserData(telegramId, {
+                      balance,
+                      inventory: JSON.stringify(updatedOwnedCars.slice(0, 12)), // Обрезаем до 12 элементов
+                      topScore
+                  });
+
+                  displayCars();
+                  updateEarnRate();
+                  updateInfoPanels();
+              } catch (error) {
+                  console.error("Ошибка при обновлении данных в базе данных:", error);
+                  alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
+
+                  // Восстанавливаем баланс, если обновление не удалось
+                  balance += car.price;
+                  ownedCars[emptySlotIndex] = null;
+              }
+          } else {
+              alert("Превышен лимит гаража!");
+          }
       } else {
-        alert("Превышен лимит гаража!");
+          alert("Недостаточно средств!");
       }
-    } else {
-      alert("Недостаточно средств!");
-    }
+  } else if (event.target.id === "closeShopButton") {
+      document.getElementById("shop").style.display = "none";
   }
 });
+
 
 // Функция для анимации движения машинок
 function animateCars() {

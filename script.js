@@ -17,9 +17,9 @@ const firebaseConfig = {
 
 
 
-// Инициализация Firebase (без изменений)
+// Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
-const analytics = firebase.getAnalytics(app); // Если вы используете Analytics
+const analytics = firebase.getAnalytics(app);
 const database = firebase.database();
 const dbRef = database.ref(); 
 
@@ -28,6 +28,7 @@ const dbRef = database.ref();
  
 
 
+// Получение данных пользователя
 async function getUserData(telegramId) {
   try {
     const snapshot = await dbRef.child(`users/${telegramId}`).once('value'); // Получаем данные из Realtime Database
@@ -65,6 +66,7 @@ async function getUserData(telegramId) {
 
 
 
+// Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
     // Проверяем, что inventory - это массив

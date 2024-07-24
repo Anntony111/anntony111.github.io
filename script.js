@@ -1,6 +1,10 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore, doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js';
+import { getDatabase, ref, child, get, update } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js';
+
+
+
+
 
 // Ваша конфигурация Firebase
 const firebaseConfig = {
@@ -16,12 +20,10 @@ const firebaseConfig = {
 
 
 
-
-// Initialize Firebase
+// Инициализация Firebase
 const app = firebase.initializeApp(firebaseConfig);
-const analytics = firebase.getAnalytics(app);
 const database = firebase.database();
-const dbRef = database.ref(); 
+const dbRef = database.ref();
 
 
 
@@ -43,9 +45,9 @@ async function getUserData(telegramId) {
 
       // Проверяем и корректируем остальные поля, если нужно
       userData.balance = userData.balance || 0;
-      userData.topScore = userData.topScore || 0; // Обратите внимание: topScore (camelCase)
-      userData.carRef = userData.carRef || null;  // Обратите внимание: carRef (camelCase)
-      userData.carTop = userData.carTop || null;  // Обратите внимание: carTop (camelCase)
+      userData.topScore = userData.topScore || 0; 
+      userData.carRef = userData.carRef || null;  
+      userData.carTop = userData.carTop || null; 
       userData.name = userData.name || "";
       userData.username = userData.username || "";
       userData.telegram_id = userData.telegram_id || "";
@@ -65,7 +67,6 @@ async function getUserData(telegramId) {
 
 
 
-
 // Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
@@ -80,10 +81,10 @@ async function updateUserData(telegramId, updates) {
       inventory: JSON.stringify(updates.inventory)
     };
 
-    await dbRef.child(`users/${telegramId}`).update(updatesWithJsonInventory); // Изменение здесь
+    await dbRef.child(`users/${telegramId}`).update(updatesWithJsonInventory);
   } catch (error) {
     console.error('Error updating user data:', error);
-    throw error; // Передаем ошибку дальше для обработки
+    throw error;
   }
 }
 
@@ -493,6 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
   backgroundMusic.play();
 });
 
+let cloud; // Объявляем переменную cloud глобально
 
 document.addEventListener('DOMContentLoaded', () => {
   const cloud = document.getElementById('cloud');
@@ -513,6 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       cloud.style.transform = `translate(${posX}px, ${posY}px)`;
+      cloud = document.getElementById('cloud');
       requestAnimationFrame(animateCloud);
       const cloud = document.getElementById('cloud');
   }
@@ -538,9 +541,17 @@ window.addEventListener('load', () => {
 
 
 document.getElementById('playMusicButton').addEventListener('click', function() {
-  var audio = document.getElementById('backgroundMusic');
-  audio.play();
+  const backgroundMusic = document.getElementById('backgroundMusic');
+
+  // Проверяем, что элемент audio найден
+  if (backgroundMusic) {
+    backgroundMusic.volume = 0.1; // Устанавливаем громкость на 10%
+    backgroundMusic.play(); // Запускаем воспроизведение
+  } else {
+    console.error('Audio element not found!'); // Выводим ошибку в консоль, если элемент не найден
+  }
 });
+
 
 
 // Вызываем функции при загрузке страницы

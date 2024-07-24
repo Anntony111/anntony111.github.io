@@ -92,13 +92,12 @@ async function updateUserData(telegramId, updates) {
     // Обновляем каждый слот инвентаря отдельно
     if (updates.inventory) {
       const inventoryRef = userRef.child('inventory');
-      const inventoryUpdates = {}; // Создаем объект для обновления инвентаря
 
       for (let i = 0; i < updates.inventory.length; i++) {
-        inventoryUpdates[i.toString()] = updates.inventory[i]; // Используем строковый ключ
+        // Преобразуем объект машинки в JSON-строку и сохраняем в отдельный узел
+        await inventoryRef.child(i.toString()).set(JSON.stringify(updates.inventory[i])); 
       }
 
-      await inventoryRef.update(inventoryUpdates); // Обновляем инвентарь в базе данных
       delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
@@ -106,7 +105,7 @@ async function updateUserData(telegramId, updates) {
     await userRef.update(updates);
   } catch (error) {
     console.error('Error updating user data:', error);
-    throw error;
+    throw error; 
   }
 }
 

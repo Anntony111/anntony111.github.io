@@ -455,38 +455,54 @@ document.getElementById("shopButton").addEventListener("click", () => {
 function displayShop() {
   const shop = document.getElementById("shop");
   shop.innerHTML = `
-      <div class="shop-header">
-          <h2>Магазин</h2>
-          <button id="closeShopButton">Закрыть</button> </div>`;
+    <div class="shop-header">
+      <h2>Магазин</h2>
+      <button id="closeShopButton">Закрыть</button> 
+    </div>
+  `;
 
-    cars.forEach(car => {
-      const shopItem = document.createElement("div");
-      shopItem.classList.add("shop-item");
-  
-      const carImage = document.createElement("img");
-      carImage.src = car.image;
-      carImage.alt = car.name;
-      shopItem.appendChild(carImage);
-  
-      const carInfo = document.createElement("div");
-      carInfo.innerHTML = `
-        <p>Уровень: ${car.level}</p>
-        <p>Цена: ${car.price}</p>
-        <button class="buy-button" data-car-index="${cars.indexOf(car)}">Купить</button>
-      `;
-      shopItem.appendChild(carInfo);
-  
-      shop.appendChild(shopItem);
-      
+  cars.forEach((car, index) => { // Добавляем индекс в forEach
+    const shopItem = document.createElement("div");
+    shopItem.classList.add("shop-item");
+
+    const carImage = document.createElement("img");
+    carImage.src = car.image;
+    carImage.alt = car.name;
+    shopItem.appendChild(carImage);
+
+    const carInfo = document.createElement("div");
+    carInfo.innerHTML = `
+      <p>Уровень: ${car.level}</p>
+      <p>Цена: ${car.price}</p>
+    `;
+
+    // Добавляем кнопку "Купить" только если есть место в инвентаре
+    const emptySlotIndex = ownedCars.findIndex(slot => !slot); // Проверяем наличие пустого слота
+    if (emptySlotIndex !== -1) {
+      const buyButton = document.createElement("button");
+      buyButton.classList.add("buy-button");
+      buyButton.dataset.carIndex = index;
+      buyButton.textContent = "Купить";
+      carInfo.appendChild(buyButton);
+    } else {
+      const noSpaceMessage = document.createElement("p");
+      noSpaceMessage.textContent = "Нет места в гараже";
+      carInfo.appendChild(noSpaceMessage);
+    }
+
+    shopItem.appendChild(carInfo);
+    shop.appendChild(shopItem);
+  });
+
+  // Обработчик события для кнопки "Закрыть"
+  const closeShopButton = document.getElementById("closeShopButton");
+  if (closeShopButton) { // Проверяем, что кнопка существует
+    closeShopButton.addEventListener("click", () => {
+      shop.style.display = "none";
     });
   }
-  
-   // Обработчик события для кнопки "Закрыть" (вынесен за пределы displayShop)
-document.getElementById("shop").addEventListener("click", (event) => {
-  if (event.target.id === "closeShopButton") {
-      document.getElementById("shop").style.display = "none";
-  }
-});
+}
+
 
 
 

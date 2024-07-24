@@ -27,7 +27,21 @@ const database = firebase.database();
 const dbRef = database.ref();
 
 
+async function main() {
+  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || '1';
+  const userData = await getUserData(telegramId);
 
+  if (userData) {
+    // Пользователь найден, используем его данные
+    console.log(userData.balance); // Пример использования данных
+    // ...
+  } else {
+    // Пользователь не найден, создаем новый профиль
+    // ...
+  }
+}
+
+main(); // Вызываем функцию main() для запуска приложения
  
 
 

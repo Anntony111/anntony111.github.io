@@ -199,10 +199,13 @@ let carTop = null
 
 // Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
-  if (level <= cars.length) {
-      return cars[level - 1].image;
+  if (level === 0) {
+    return "default_car_image.png"; // Или другое изображение для пустого слота
+  } else if (level <= cars.length) {
+    return cars[level - 1].image;
   } else {
-      return "default_car_image.png"; // Или другое изображение по умолчанию
+    console.warn(`Car with level ${level} not found in cars array.`); // Выводим предупреждение в консоль
+    return "default_car_image.png"; // Или другое изображение по умолчанию
   }
 }
 

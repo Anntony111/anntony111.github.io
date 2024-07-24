@@ -110,8 +110,8 @@ async function updateUserData(telegramId, updates) {
         balance: 0,
         inventory: JSON.stringify([]),
         topScore: 0,
-        carRef: null,
-        carTop: null,
+        carRef: 0,
+        carTop: 0,
         created_at: new Date().toISOString()
       };
       await updateUserData(telegramId, newUserData);
@@ -122,8 +122,8 @@ async function updateUserData(telegramId, updates) {
     balance = userData.balance || 0; 
     ownedCars = userData.inventory ? JSON.parse(userData.inventory) : []; 
     topScore = userData.top_score || 0; 
-    carRef = userData.car_ref || null;
-    carTop = userData.car_top || null;
+    carRef = userData.car_ref || 0; // Проверяем наличие и устанавливаем значение по умолчанию
+    carTop = userData.car_top || 0; 
 
     updateInfoPanels();
     displayCars();
@@ -164,10 +164,11 @@ const cars = [
 let ownedCars = new Array(12).fill(null); // Создаем массив из 12 пустых слотов для машинок
 
 // Переменные для хранения данных
-let balance = 10; // Начальный баланс пользователя
+let balance = 10;
 let earnRate = 0;
 let topScore = 0;
-
+let carRef = null;  // Объявляем carRef глобально
+let carTop = null
 
 // Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
@@ -354,35 +355,40 @@ setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
 
 
   
-  document.getElementById("shop").addEventListener("click", async (event) => {
-    if (event.target.classList.contains("buy-button")) {
-      const carIndex = parseInt(event.target.dataset.carIndex);
-      const car = cars[carIndex];
-      const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  
-      if (balance >= car.price) {
-        balance -= car.price;
-  
-        const emptySlotIndex = ownedCars.findIndex(slot => slot === null);
-  
-        if (emptySlotIndex !== -1) {
-          ownedCars[emptySlotIndex] = { ...car };
-  
-          // Обновляем данные в базе данных
-          await updateUserData(telegramId, { balance, inventory: ownedCars, topScore, carRef, carTop });
-  
-          displayCars();
-          updateEarnRate();
-          updateInfoPanels();
-        } else {
-          alert("Превышен лимит гаража!");
-        }
+document.getElementById("shop").addEventListener("click", async (event) => {
+  if (event.target.classList.contains("buy-button")) {
+    const carIndex = parseInt(event.target.dataset.carIndex);
+    const car = cars[carIndex];
+    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+
+    if (balance >= car.price) {
+      balance -= car.price;  // Уменьшаем баланс на стоимость машинки
+
+      const emptySlotIndex = ownedCars.findIndex(slot => slot === null);
+
+      if (emptySlotIndex !== -1) {
+        ownedCars[emptySlotIndex] = { ...car };
+
+        // Обновляем данные в базе данных
+        await updateUserData(telegramId, {
+          balance, // Обновляем баланс в базе данных
+          inventory: JSON.stringify(ownedCars),
+          topScore,
+          carRef,
+          carTop
+        });
+
+        displayCars();
+        updateEarnRate();
+        updateInfoPanels(); // Обновляем отображение баланса
       } else {
-        alert("Недостаточно средств!");
+        alert("Превышен лимит гаража!");
       }
+    } else {
+      alert("Недостаточно средств!");
     }
-  });
-  
+  }
+});
 
 // Функция для анимации движения машинок
 function animateCars() {

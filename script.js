@@ -199,12 +199,12 @@ let carTop = null
 
 // Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
-  if (level === 0) {
-    return "default_car_image.png"; // Или другое изображение для пустого слота
-  } else if (level <= cars.length) {
+  if (!level) return "default_car_image.png"; // Если слот пустой (level === null)
+
+  if (level <= cars.length) {
     return cars[level - 1].image;
   } else {
-    console.warn(`Car with level ${level} not found in cars array.`); // Выводим предупреждение в консоль
+    console.warn(`Car with level ${level} not found in cars array.`);
     return "default_car_image.png"; // Или другое изображение по умолчанию
   }
 }
@@ -586,6 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cloud = document.getElementById('cloud');
       requestAnimationFrame(animateCloud);
       const cloud = document.getElementById('cloud');
+     
   }
 
   animateCloud();

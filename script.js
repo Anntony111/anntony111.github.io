@@ -463,7 +463,6 @@ document.getElementById("shopButton").addEventListener("click", () => {
 });
 
 
-// Функция для отображения магазина
 function displayShop() {
   const shop = document.getElementById("shop");
   shop.innerHTML = `
@@ -472,9 +471,9 @@ function displayShop() {
       <button id="closeShopButton">Закрыть</button> 
     </div>
     <div id="shopContent"> </div>
-  `; // Добавляем контейнер для контента магазина
+  `;
 
-  const shopContent = document.getElementById("shopContent"); // Получаем ссылку на контейнер контента
+  const shopContent = document.getElementById("shopContent");
 
   cars.forEach((car, index) => {
     const shopItem = document.createElement("div");
@@ -491,8 +490,8 @@ function displayShop() {
       <p>Цена: ${car.price}</p>
     `;
 
-    // Проверяем, есть ли место в инвентаре
-    const emptySlotIndex = ownedCars.findIndex(slot => !slot); 
+    // Проверяем, есть ли место в инвентаре (ищем слот с level: 0)
+    const emptySlotIndex = ownedCars.findIndex(slot => slot?.level === 0); // Используем необязательную цепочку
 
     if (emptySlotIndex !== -1) {
       const buyButton = document.createElement("button");
@@ -513,7 +512,7 @@ function displayShop() {
           try {
             await updateUserData(telegramId, {
               balance,
-              inventory: updatedOwnedCars, 
+              inventory: updatedOwnedCars,
               topScore
             });
 
@@ -526,7 +525,7 @@ function displayShop() {
 
             // Восстанавливаем баланс, если обновление не удалось
             balance += car.price;
-            ownedCars[emptySlotIndex] = null;
+            ownedCars[emptySlotIndex] = { level: 0, name: `Car ${emptySlotIndex + 1}` }; // Восстанавливаем пустой слот
           }
         } else {
           alert("Недостаточно средств!");
@@ -541,7 +540,7 @@ function displayShop() {
     }
 
     shopItem.appendChild(carInfo);
-    shopContent.appendChild(shopItem); // Добавляем shopItem в shopContent
+    shopContent.appendChild(shopItem);
   });
 
   // Обработчик события для кнопки "Закрыть"

@@ -88,7 +88,9 @@ async function updateUserData(telegramId, updates) {
   }
 }
 
-
+const connectingMessage = document.createElement('p');
+connectingMessage.textContent = 'Соединение с базой данных...';
+document.body.appendChild(connectingMessage); // Добавляем сообщение в DOM
 
 
 (async () => {
@@ -102,32 +104,45 @@ async function updateUserData(telegramId, updates) {
     let userData = await getUserData(telegramId);
 
     if (!userData) {
+      // Если пользователь не найден, создаем новый профиль
       console.log('User not found, creating default profile...');
       const newUserData = {
-        telegram_id: telegramId, 
+        telegram_id: telegramId,
         username: username,
         name: name,
         balance: 0,
-        inventory: JSON.stringify([]),
+        inventory: JSON.stringify(new Array(12).fill(null)), // Массив из 12 null
         topScore: 0,
-        carRef: 0,
-        carTop: 0,
         created_at: new Date().toISOString()
       };
       await updateUserData(telegramId, newUserData);
-      userData = newUserData; 
+      userData = newUserData;
       console.log('Default profile created:', userData);
+    } else {
+      // Если пользователь найден, проверяем и корректируем данные
+      userData.balance = userData.balance || 0;
+      userData.topScore = userData.topScore || 0;
+      userData.name = userData.name || "";
+      userData.username = userData.username || "";
+      userData.telegram_id = userData.telegram_id || "";
+
+      // Проверяем и корректируем inventory, если нужно
+      if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
+        userData.inventory = new Array(12).fill(null);
+        await updateUserData(telegramId, { inventory: JSON.stringify(userData.inventory) }); // Обновляем inventory в базе данных
+      }
     }
 
-    balance = userData.balance || 0; 
-    ownedCars = userData.inventory ? JSON.parse(userData.inventory) : []; 
-    topScore = userData.top_score || 0; 
-    carRef = userData.car_ref || 0; // Проверяем наличие и устанавливаем значение по умолчанию
-    carTop = userData.car_top || 0; 
+    // Обновляем глобальные переменные
+    balance = userData.balance;
+    ownedCars = JSON.parse(userData.inventory); 
+    topScore = userData.topScore;
 
+    // Обновляем интерфейс
     updateInfoPanels();
     displayCars();
 
+    // Приветственное сообщение
     const welcomeMessageElement = document.getElementById('welcomeMessage');
     if (name) {
       welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
@@ -139,6 +154,7 @@ async function updateUserData(telegramId, updates) {
     alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
   }
 })();
+
 
 
 // Инициализация Telegram Web App
@@ -299,35 +315,33 @@ async function endMove(event) {
         } else {
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
         }
+
+        // Обновляем данные в Firebase Realtime Database
+        try {
+          const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+
+          // Создаем копию массива ownedCars перед обновлением
+          const updatedOwnedCars = [...ownedCars];
+
+          await updateUserData(telegramId, {
+            inventory: JSON.stringify(updatedOwnedCars),
+          });
+
+        } catch (error) {
+          console.error('Ошибка при обновлении данных в базе данных:', error);
+          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз."); 
+        }
       }
     }
 
-    // Обновляем отображение инвентаря и данные о заработке
-    displayCars();
-    updateEarnRate();
+     // Сбрасываем стили и переменные
+     movingCarElement.style.transform = '';
+     movingCarElement.classList.remove('dragging');
+     movingCarIndex = null;
+     movingCarElement = null;
+   }
+ }
 
-    // Обновляем данные в Firebase Realtime Database
-  try {
-    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-    await updateUserData(telegramId, {
-      balance,
-      inventory: JSON.stringify(ownedCars.slice(0, 12)), // Обрезаем массив до 12 элементов
-      topScore,
-      carRef,
-      carTop
-    });
-  } catch (error) {
-    console.error('Ошибка при обновлении данных в базе данных:', error);
-    alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
-  }
-
-    // Сбрасываем стили и переменные
-    movingCarElement.style.transform = '';
-    movingCarElement.classList.remove('dragging');
-    movingCarIndex = null;
-    movingCarElement = null;
-  }
-}
 
 
 

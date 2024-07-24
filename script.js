@@ -94,15 +94,10 @@ async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
 
-    // Обновляем каждый слот инвентаря отдельно
+    // Обновляем инвентарь
     if (updates.inventory) {
       const inventoryRef = userRef.child('inventory');
-
-      for (let i = 0; i < updates.inventory.length; i++) {
-        // Преобразуем объект машинки в JSON-строку и сохраняем в отдельный узел
-        await inventoryRef.child(i.toString()).set(JSON.stringify(updates.inventory[i])); 
-      }
-
+      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
       delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
@@ -375,8 +370,13 @@ function earnCoins() {
   updateInfoPanels();
 
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  updateUserData(telegramId, { balance, inventory: JSON.stringify(ownedCars), topScore, carRef, carTop });
+
+  // Создаем копию массива ownedCars перед обновлением
+  const updatedOwnedCars = [...ownedCars];
+
+  updateUserData(telegramId, { balance, inventory: updatedOwnedCars, topScore }); // Передаем копию массива ownedCars
 }
+
 
 setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
 

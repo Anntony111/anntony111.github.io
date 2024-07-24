@@ -48,16 +48,21 @@ main(); // Вызываем функцию main() для запуска прил
 // Получение данных пользователя
 async function getUserData(telegramId) {
   try {
-    const snapshot = await dbRef.child(`users/${telegramId}`).once('value');
+    const userRef = dbRef.child(`users/${telegramId}`);
+    const snapshot = await userRef.once('value');
 
     if (snapshot.exists()) {
       const userData = snapshot.val();
 
-      // Инициализируем inventory с объектами машинок, если данных нет или они некорректны
-      userData.inventory = userData.inventory || {};
-      for (let i = 0; i < 12; i++) {
-        const carData = userData.inventory[i.toString()];
-        userData.inventory[i] = carData || { level: 0, name: `Car ${i + 1}` };
+      // Проверяем и корректируем inventory, если нужно
+      if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
+        userData.inventory = {};
+        for (let i = 0; i < 12; i++) {
+          userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+        }
+
+        // Сохраняем обновленный inventory в базу данных
+        await userRef.update({ inventory: userData.inventory });
       }
 
       // Проверяем и корректируем остальные поля (balance, topScore и т.д.)

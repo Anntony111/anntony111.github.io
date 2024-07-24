@@ -89,7 +89,6 @@ async function getUserData(telegramId) {
 
 
 
-// Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
@@ -97,7 +96,14 @@ async function updateUserData(telegramId, updates) {
     // Обновляем инвентарь
     if (updates.inventory) {
       const inventoryRef = userRef.child('inventory');
-      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
+      const filteredInventory = updates.inventory.filter(car => car !== null); // Удаляем пустые слоты
+
+      // Ограничиваем количество слотов до 12
+      const limitedInventory = filteredInventory.slice(0, 12); 
+
+      // Обновляем инвентарь в базе данных
+      await inventoryRef.set(limitedInventory);
+
       delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
@@ -406,15 +412,16 @@ document.getElementById("shop").addEventListener("click", async (event) => {
     if (balance >= car.price) {
       balance -= car.price;
 
-      const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0); // Находим пустой слот
-
-      if (emptySlotIndex !== -1) {
-        ownedCars[emptySlotIndex] = { ...car }; 
+      // Проверяем, есть ли место в инвентаре (не более 12 слотов)
+      const currentInventorySize = Object.keys(ownedCars).length; // Получаем количество ключей в объекте inventory
+      if (currentInventorySize < 12) {
+        // Добавляем новую машинку в инвентарь
+        ownedCars[currentInventorySize] = { ...car }; 
 
         try {
-          await updateUserData(telegramId, { 
-            balance, 
-            inventory: ownedCars,  // Передаем массив ownedCars напрямую
+          await updateUserData(telegramId, {
+            balance,
+            inventory: ownedCars, 
             topScore
           });
 
@@ -425,9 +432,9 @@ document.getElementById("shop").addEventListener("click", async (event) => {
           console.error("Ошибка при обновлении данных в базе данных:", error);
           alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
 
-          // Восстанавливаем баланс и слот инвентаря, если обновление не удалось
+          // Восстанавливаем баланс, если обновление не удалось
           balance += car.price;
-          ownedCars[emptySlotIndex] = null; 
+          delete ownedCars[currentInventorySize]; // Удаляем добавленный слот
         }
       } else {
         alert("Превышен лимит гаража!");

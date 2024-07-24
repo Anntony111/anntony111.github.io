@@ -40,17 +40,14 @@ async function getUserData(telegramId) {
     if (snapshot.exists()) {
       const userData = snapshot.val();
 
-      // Инициализируем inventory, если он пустой или не существует
-      userData.inventory = userData.inventory || {}; 
-
-      // Заполняем массив ownedCars данными из инвентаря
-      ownedCars = [];
+      // Инициализируем inventory с объектами машинок
+      userData.inventory = {};
       for (let i = 0; i < 12; i++) {
-        const carData = userData.inventory[i.toString()]; // Получаем данные машинки по индексу-строке
-        ownedCars.push(carData ? { name: carData.name, level: carData.level } : null);
+        const carData = snapshot.child(`inventory/${i}`).val();
+        userData.inventory[i] = carData || { level: 0, name: `Car ${i + 1}` }; // Если данных нет, создаем объект по умолчанию
       }
 
-      // Проверяем и корректируем остальные поля, если нужно
+      // Проверяем и корректируем остальные поля (balance, topScore и т.д.)
       userData.balance = userData.balance || 0;
       userData.topScore = userData.topScore || 0;
       userData.name = userData.name || "";
@@ -68,6 +65,7 @@ async function getUserData(telegramId) {
     throw error; // Передаем ошибку дальше для обработки
   }
 }
+
 
 
 
@@ -667,3 +665,4 @@ document.getElementById('shopButton').addEventListener('click', () => {
   console.log('Shop button clicked'); // Должен вывести сообщение при клике
 });
 
+document.addEventListener('DOMContentLoaded', showProfile); // Вызываем showProfile после загрузки DOM

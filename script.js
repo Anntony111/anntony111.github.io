@@ -93,19 +93,21 @@ async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
 
-    // Обновляем каждый слот инвентаря отдельно
+    // Обновляем инвентарь
     if (updates.inventory) {
       const inventoryRef = userRef.child('inventory');
+      const inventoryUpdates = {};
 
-      for (let i = 0; i < updates.inventory.length; i++) {
-        const car = updates.inventory[i];
-        if (car) { // Обновляем только если слот не пустой (car !== null)
-          await inventoryRef.child(i.toString()).set(car);
+      for (const slotIndex in updates.inventory) {
+        const car = updates.inventory[slotIndex];
+        if (car) {
+          inventoryUpdates[slotIndex] = car; // Обновляем только непустые слоты
         } else {
-          await inventoryRef.child(i.toString()).remove(); // Удаляем пустой слот
+          inventoryRef.child(slotIndex).remove(); // Удаляем пустые слоты
         }
       }
 
+      await inventoryRef.update(inventoryUpdates); // Обновляем инвентарь в базе данных
       delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
@@ -116,6 +118,7 @@ async function updateUserData(telegramId, updates) {
     throw error; 
   }
 }
+
 
 
 const connectingMessage = document.createElement('p');
@@ -134,6 +137,7 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
     let userData = await getUserData(telegramId);
 
     if (!userData) {
+      // Если пользователь не найден, создаем новый профиль
       console.log('User not found, creating default profile...');
       const newUserData = {
         telegram_id: telegramId,
@@ -144,24 +148,30 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
         topScore: 0,
         created_at: new Date().toISOString()
       };
-
-      // Заполняем inventory машинами по умолчанию
-      for (let i = 0; i < 12; i++) {
-        newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
-      }
-
       await updateUserData(telegramId, newUserData);
       userData = await getUserData(telegramId); // Получаем обновленные данные
       console.log('Default profile created:', userData);
+    } else {
+      // Если пользователь найден, проверяем и корректируем данные
+      userData.balance = userData.balance || 0;
+      userData.topScore = userData.topScore || 0;
+      userData.name = userData.name || "";
+      userData.username = userData.username || "";
+      userData.telegram_id = userData.telegram_id || "";
     }
 
-    balance = userData.balance || 0;
-    ownedCars = Object.values(userData.inventory); // Преобразуем inventory в массив
-    topScore = userData.topScore || 0;
+    // Заполняем ownedCars данными из инвентаря
+    ownedCars = [];
+    for (let i = 0; i < 12; i++) {
+      const carData = userData.inventory[i.toString()];
+      ownedCars.push(carData || null); // Добавляем null, если слот пустой
+    }
 
+    // Обновляем интерфейс
     updateInfoPanels();
     displayCars();
 
+    // Приветственное сообщение
     const welcomeMessageElement = document.getElementById('welcomeMessage');
     if (name) {
       welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
@@ -385,16 +395,10 @@ function earnCoins() {
   updateInfoPanels();
 
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-
-  // Создаем копию массива ownedCars перед обновлением
-  const updatedOwnedCars = [...ownedCars];
-
-  updateUserData(telegramId, {
-    balance,
-    inventory: updatedOwnedCars.map(car => car ? car : null), // Заменяем объекты с level: 0 на null
-    topScore
-  });
+  updateUserData(telegramId, { balance, topScore }); // Обновляем только balance и topScore
 }
+
+
 
 
 

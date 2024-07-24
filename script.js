@@ -197,15 +197,13 @@ let topScore = 0;
 let carRef = null;  // Объявляем carRef глобально
 let carTop = null
 
+
 // Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
-  if (!level) return "default_car_image.png"; // Если слот пустой (level === null)
-
-  if (level <= cars.length) {
-    return cars[level - 1].image;
+  if (level === 0 || level > cars.length) {
+    return null; // Возвращаем null, если слот пустой или уровень машинки не найден
   } else {
-    console.warn(`Car with level ${level} not found in cars array.`);
-    return "default_car_image.png"; // Или другое изображение по умолчанию
+    return cars[level - 1].image;
   }
 }
 
@@ -215,27 +213,32 @@ function displayCars() {
   inventory.innerHTML = ""; // Очищаем инвентарь перед обновлением
 
   ownedCars.forEach((car, index) => {
-    const carSlot = document.createElement("div"); 
-    carSlot.classList.add("car-slot");  // Добавляем класс для стилизации слота
-    carSlot.draggable = true;           // Делаем слот перетаскиваемым
-    carSlot.dataset.index = index;      // Запоминаем индекс слота в дата-атрибуте
+    const carSlot = document.createElement("div");
+    carSlot.classList.add("car-slot");
+    carSlot.draggable = true;
+    carSlot.dataset.index = index;
 
-    if (car) { // Если в слоте есть машинка
+    if (car && car.level > 0) { // Проверяем, что слот не пустой (level > 0)
       // Добавляем изображение машинки
       const carImage = document.createElement("img");
-      carImage.src = getCarImageByLevel(car.level); 
-      carImage.alt = car.name; 
+      carImage.src = getCarImageByLevel(car.level);
+      carImage.alt = car.name;
       carSlot.appendChild(carImage);
 
       // Добавляем отображение уровня машинки
       const carLevel = document.createElement("div");
-      carLevel.classList.add("car-level"); 
+      carLevel.classList.add("car-level");
       carLevel.textContent = `Lvl ${car.level}`;
       carSlot.appendChild(carLevel);
+    } else {
+      // Если слот пустой, добавляем текст "Пусто"
+      const emptySlotText = document.createElement("p");
+      emptySlotText.textContent = "Пусто";
+      carSlot.appendChild(emptySlotText);
     }
 
     // Добавляем обработчики событий для перетаскивания (drag-and-drop)
-    carSlot.addEventListener("mousedown", startMove);     
+    carSlot.addEventListener("mousedown", startMove);    
     carSlot.addEventListener("mousemove", moveCar);
     carSlot.addEventListener("mouseup", endMove);
     // Обработчики для сенсорных устройств (touch events)
@@ -246,6 +249,7 @@ function displayCars() {
     inventory.appendChild(carSlot); // Добавляем слот в инвентарь
   });
 }
+
 
 let movingCarIndex = null;
 let movingCarElement = null;
@@ -377,8 +381,13 @@ function earnCoins() {
   // Создаем копию массива ownedCars перед обновлением
   const updatedOwnedCars = [...ownedCars];
 
-  updateUserData(telegramId, { balance, inventory: updatedOwnedCars, topScore }); // Передаем копию массива ownedCars
+  updateUserData(telegramId, {
+    balance,
+    inventory: updatedOwnedCars.map(car => car ? car : null), // Заменяем объекты с level: 0 на null
+    topScore
+  });
 }
+
 
 
 setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
@@ -642,26 +651,26 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 
 async function showProfile() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  const profileMenu = document.getElementById('profileMenu'); // Получаем элемент profileMenu
 
   try {
     const userData = await getUserData(telegramId);
 
-    if (userData) {
+    if (userData && profileMenu) { // Проверяем, что userData и profileMenu не null
       document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
       document.getElementById('profileBalance').textContent = userData.balance;
       document.getElementById('profileCarRef').textContent = userData.car_ref;
       document.getElementById('profileCarTop').textContent = userData.car_top;
       // Заполняем остальные поля профиля данными из userData
-      
-      document.getElementById('profileMenu').style.display = 'block'; // Показываем меню профиля
+
+      profileMenu.style.display = 'block'; // Показываем меню профиля
     } else {
       // Обработка ситуации, когда данные пользователя не найдены в базе данных
-      console.error('Данные пользователя не найдены в базе данных.');
+      console.error('Данные пользователя или profileMenu не найдены.');
       // Можно добавить вывод сообщения пользователю или другие действия
     }
   } catch (error) {
     console.error('Ошибка при получении данных пользователя:', error);
-    // Обработка ошибки (например, вывод сообщения пользователю)
     alert("Произошла ошибка при загрузке профиля. Пожалуйста, попробуйте еще раз.");
   }
   const welcomeMessageElement = document.getElementById('welcomeMessage');
@@ -671,6 +680,7 @@ async function showProfile() {
     welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
   }
 }
+
 
 
 document.addEventListener('DOMContentLoaded', function() {

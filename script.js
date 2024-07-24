@@ -93,16 +93,18 @@ async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
 
-    // Обновляем инвентарь
+    // Обновляем каждый слот инвентаря отдельно
     if (updates.inventory) {
       const inventoryRef = userRef.child('inventory');
-      const filteredInventory = updates.inventory.filter(car => car !== null); // Удаляем пустые слоты
 
-      // Ограничиваем количество слотов до 12
-      const limitedInventory = filteredInventory.slice(0, 12); 
-
-      // Обновляем инвентарь в базе данных
-      await inventoryRef.set(limitedInventory);
+      for (let i = 0; i < updates.inventory.length; i++) {
+        const car = updates.inventory[i];
+        if (car) { // Обновляем только если слот не пустой (car !== null)
+          await inventoryRef.child(i.toString()).set(car);
+        } else {
+          await inventoryRef.child(i.toString()).remove(); // Удаляем пустой слот
+        }
+      }
 
       delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }

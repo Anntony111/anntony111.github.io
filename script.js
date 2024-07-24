@@ -197,7 +197,7 @@ let topScore = 0;
 let carRef = null;  // Объявляем carRef глобально
 let carTop = null
 
-
+// Функция для получения изображения машинки по уровню
 // Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
   if (level === 0 || level > cars.length) {
@@ -213,32 +213,27 @@ function displayCars() {
   inventory.innerHTML = ""; // Очищаем инвентарь перед обновлением
 
   ownedCars.forEach((car, index) => {
-    const carSlot = document.createElement("div");
-    carSlot.classList.add("car-slot");
-    carSlot.draggable = true;
-    carSlot.dataset.index = index;
+    const carSlot = document.createElement("div"); 
+    carSlot.classList.add("car-slot");  // Добавляем класс для стилизации слота
+    carSlot.draggable = true;           // Делаем слот перетаскиваемым
+    carSlot.dataset.index = index;      // Запоминаем индекс слота в дата-атрибуте
 
-    if (car && car.level > 0) { // Проверяем, что слот не пустой (level > 0)
+    if (car) { // Если в слоте есть машинка
       // Добавляем изображение машинки
       const carImage = document.createElement("img");
-      carImage.src = getCarImageByLevel(car.level);
-      carImage.alt = car.name;
+      carImage.src = getCarImageByLevel(car.level); 
+      carImage.alt = car.name; 
       carSlot.appendChild(carImage);
 
       // Добавляем отображение уровня машинки
       const carLevel = document.createElement("div");
-      carLevel.classList.add("car-level");
+      carLevel.classList.add("car-level"); 
       carLevel.textContent = `Lvl ${car.level}`;
       carSlot.appendChild(carLevel);
-    } else {
-      // Если слот пустой, добавляем текст "Пусто"
-      const emptySlotText = document.createElement("p");
-      emptySlotText.textContent = "Пусто";
-      carSlot.appendChild(emptySlotText);
     }
 
     // Добавляем обработчики событий для перетаскивания (drag-and-drop)
-    carSlot.addEventListener("mousedown", startMove);    
+    carSlot.addEventListener("mousedown", startMove);     
     carSlot.addEventListener("mousemove", moveCar);
     carSlot.addEventListener("mouseup", endMove);
     // Обработчики для сенсорных устройств (touch events)
@@ -249,7 +244,6 @@ function displayCars() {
     inventory.appendChild(carSlot); // Добавляем слот в инвентарь
   });
 }
-
 
 let movingCarIndex = null;
 let movingCarElement = null;
@@ -328,37 +322,38 @@ async function endMove(event) {
         const targetCar = ownedCars[targetIndex];
 
         if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
-          ownedCars[targetIndex].level++;
-          ownedCars[movingCarIndex] = null;
+          ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
+          ownedCars[movingCarIndex] = null; // Очищаем исходный слот
         } else {
-          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
+          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
         }
 
         // Обновляем данные в Firebase Realtime Database
         try {
           const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
-          // Создаем копию массива ownedCars перед обновлением
-          const updatedOwnedCars = [...ownedCars];
-
-          await updateUserData(telegramId, {
-            inventory: JSON.stringify(updatedOwnedCars),
-          });
-
+          await updateUserData(telegramId, { inventory: ownedCars });
         } catch (error) {
           console.error('Ошибка при обновлении данных в базе данных:', error);
-          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз."); 
+          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
+
+          // Отменяем перемещение, если обновление не удалось
+          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
         }
       }
     }
 
-     // Сбрасываем стили и переменные
-     movingCarElement.style.transform = '';
-     movingCarElement.classList.remove('dragging');
-     movingCarIndex = null;
-     movingCarElement = null;
-   }
- }
+    // Сбрасываем стили и переменные
+    movingCarElement.style.transform = '';
+    movingCarElement.classList.remove('dragging');
+    movingCarIndex = null;
+    movingCarElement = null;
+
+    displayCars(); // Обновляем отображение инвентаря
+    updateEarnRate();
+  }
+}
+
 
 
 
@@ -381,13 +376,8 @@ function earnCoins() {
   // Создаем копию массива ownedCars перед обновлением
   const updatedOwnedCars = [...ownedCars];
 
-  updateUserData(telegramId, {
-    balance,
-    inventory: updatedOwnedCars.map(car => car ? car : null), // Заменяем объекты с level: 0 на null
-    topScore
-  });
+  updateUserData(telegramId, { balance, inventory: updatedOwnedCars, topScore }); // Передаем копию массива ownedCars
 }
-
 
 
 setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
@@ -399,50 +389,48 @@ setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
   
 document.getElementById("shop").addEventListener("click", async (event) => {
   if (event.target.classList.contains("buy-button")) {
-      const carIndex = parseInt(event.target.dataset.carIndex);
-      const car = cars[carIndex];
-      const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+    const carIndex = parseInt(event.target.dataset.carIndex);
+    const car = cars[carIndex];
+    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
-      if (balance >= car.price) {
-          balance -= car.price;
+    if (balance >= car.price) {
+      balance -= car.price;
 
-          const emptySlotIndex = ownedCars.findIndex(slot => slot === null);
+      const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0); // Находим пустой слот
 
-          if (emptySlotIndex !== -1) {
-              ownedCars[emptySlotIndex] = { ...car };
+      if (emptySlotIndex !== -1) {
+        ownedCars[emptySlotIndex] = { ...car }; 
 
-              // Создаем копию ownedCars перед обновлением
-              const updatedOwnedCars = [...ownedCars];
+        try {
+          await updateUserData(telegramId, { 
+            balance, 
+            inventory: ownedCars,  // Передаем массив ownedCars напрямую
+            topScore
+          });
 
-              // Обновляем данные в базе данных с копией
-              try {
-                  await updateUserData(telegramId, {
-                      balance,
-                      inventory: JSON.stringify(updatedOwnedCars.slice(0, 12)), // Обрезаем до 12 элементов
-                      topScore
-                  });
+          displayCars();
+          updateEarnRate();
+          updateInfoPanels();
+        } catch (error) {
+          console.error("Ошибка при обновлении данных в базе данных:", error);
+          alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
 
-                  displayCars();
-                  updateEarnRate();
-                  updateInfoPanels();
-              } catch (error) {
-                  console.error("Ошибка при обновлении данных в базе данных:", error);
-                  alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
-
-                  // Восстанавливаем баланс, если обновление не удалось
-                  balance += car.price;
-                  ownedCars[emptySlotIndex] = null;
-              }
-          } else {
-              alert("Превышен лимит гаража!");
-          }
+          // Восстанавливаем баланс и слот инвентаря, если обновление не удалось
+          balance += car.price;
+          ownedCars[emptySlotIndex] = null; 
+        }
       } else {
-          alert("Недостаточно средств!");
+        alert("Превышен лимит гаража!");
       }
+    } else {
+      alert("Недостаточно средств!");
+    }
   } else if (event.target.id === "closeShopButton") {
-      document.getElementById("shop").style.display = "none";
+    document.getElementById("shop").style.display = "none";
   }
 });
+
+
 
 
 // Функция для анимации движения машинок

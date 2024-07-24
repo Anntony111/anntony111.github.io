@@ -1,61 +1,90 @@
-async function fetchUserData(telegramId) {
-  try {
-    // Если telegramId не передан, используем значение по умолчанию
-    const response = await fetch(`http://localhost:3000/user/${encodeURIComponent(telegramId)}|| '1'}`);
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    const userData = await response.json();
-    console.log(userData);
-    // Обработайте данные пользователя, например, обновите DOM
-  } catch (error) {
-    console.error('Error fetching user data:', error);
-  }
-}
-  
-  // Пример вызова функции
-  fetchUserData('some-telegram-id');
+const firebaseConfig = {
+  apiKey: "AIzaSyDd51tU1028m5GxbpwVbce6r0llY20moi0",
+  authDomain: "telegram-game-db.firebaseapp.com",
+  databaseURL: "https://telegram-game-db-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "telegram-game-db",
+  storageBucket: "telegram-game-db.appspot.com",
+  messagingSenderId: "497842898968",
+  appId: "1:497842898968:web:9445995ee92c67dd851b6d",
+  measurementId: "G-BVT2RTKGSJ"
+};
 
 
+
+
+
+// Инициализация Firebase 
+const app = firebase.initializeApp(firebaseConfig); // Убираем .compat из названия
+
+// Инициализация Realtime Database (без getDatabase)
+const database = firebase.database();
+const dbRef = database.ref(); 
 
  
 
 // Получение данных пользователя
 async function getUserData(telegramId) {
   try {
-    const response = await fetch(`http://localhost:3000/user/${telegramId}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data');
+    const snapshot = await get(child(dbRef, `users/${telegramId}`));
+    if (snapshot.exists()) {
+      const userData = snapshot.val();
+
+      // Проверяем, является ли inventory строкой JSON
+      if (typeof userData.inventory === 'string') {
+        try {
+          userData.inventory = JSON.parse(userData.inventory); // Преобразуем в массив
+        } catch (jsonError) {
+          console.error('Ошибка при преобразовании inventory из JSON:', jsonError);
+          // Если преобразование не удалось, можно вернуть пустой массив или null
+          userData.inventory = []; 
+        }
+      } else if (!Array.isArray(userData.inventory)) {
+        // Если inventory не строка и не массив, устанавливаем пустой массив
+        userData.inventory = [];
+      }
+
+      console.log("Fetched user data:", userData);
+      return userData;
+    } else {
+      console.log("User not found");
+      return null;
     }
-    const data = await response.json();
-    console.log(data); // Проверьте, что данные приходят как ожидается
-    // Обработка данных
   } catch (error) {
     console.error('Ошибка при загрузке данных пользователя:', error);
+    throw error; 
   }
 }
 
 
 
-// Обновление данных пользователя
+
 async function updateUserData(telegramId, updates) {
-  const response = await fetch(`/user/${telegramId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(updates),
-  });
-  if (!response.ok) {
-    throw new Error('Failed to update user data');
+  try {
+    // Проверяем, что inventory - это массив
+    if (!Array.isArray(updates.inventory)) {
+      throw new Error('Inventory data must be an array');
+    }
+
+    // Преобразуем inventory в JSON-строку
+    const updatesWithJsonInventory = {
+      ...updates,
+      inventory: JSON.stringify(updates.inventory)
+    };
+
+    await update(ref(database, `users/${telegramId}`), updatesWithJsonInventory);
+  } catch (error) {
+    console.error('Error updating user data:', error);
+    throw error; // Передаем ошибку дальше для обработки
   }
-  return response.text();
 }
+
 
 
 
 (async () => {
-  let telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || '1'; // Значение по умолчанию '1' (строка)
+  const urlParams = new URLSearchParams(window.location.search);
+  let telegramId = urlParams.get('telegramId') || Telegram.WebApp.initDataUnsafe?.user?.id || '1';
+
   const username = Telegram.WebApp.initDataUnsafe?.user?.username;
   const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
 
@@ -64,27 +93,31 @@ async function updateUserData(telegramId, updates) {
 
     if (!userData) {
       console.log('User not found, creating default profile...');
-      await updateUserData(telegramId, {
+      const newUserData = {
+        telegram_id: telegramId, 
+        username: username,
+        name: name,
         balance: 0,
-        inventory: JSON.stringify([]), // Преобразуем массив в JSON-строку
+        inventory: JSON.stringify([]),
         topScore: 0,
         carRef: null,
-        carTop: null
-      });
-      userData = await getUserData(telegramId); // Получаем обновленные данные
+        carTop: null,
+        created_at: new Date().toISOString()
+      };
+      await updateUserData(telegramId, newUserData);
+      userData = newUserData; 
       console.log('Default profile created:', userData);
     }
 
-    balance = userData.balance;
-    ownedCars = JSON.parse(userData.inventory); // Преобразуем JSON-строку обратно в массив
-    topScore = userData.top_score;
-    carRef = userData.car_ref;
-    carTop = userData.car_top;
+    balance = userData.balance || 0; 
+    ownedCars = userData.inventory ? JSON.parse(userData.inventory) : []; 
+    topScore = userData.top_score || 0; 
+    carRef = userData.car_ref || null;
+    carTop = userData.car_top || null;
 
     updateInfoPanels();
     displayCars();
 
-    // Приветственное сообщение
     const welcomeMessageElement = document.getElementById('welcomeMessage');
     if (name) {
       welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
@@ -262,15 +295,20 @@ async function endMove(event) {
     displayCars();
     updateEarnRate();
 
-    // Обновляем данные в базе данных после изменения инвентаря
-    try {
-      const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-      await updateUserData(telegramId, { balance, inventory: ownedCars, topScore, carRef, carTop });
-    } catch (error) {
-      console.error('Ошибка при обновлении данных в базе данных:', error);
-      // Дополнительная обработка ошибки (например, сообщение пользователю)
-      alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз."); 
-    }
+    // Обновляем данные в Firebase Realtime Database
+  try {
+    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+    await updateUserData(telegramId, {
+      balance,
+      inventory: JSON.stringify(ownedCars.slice(0, 12)), // Обрезаем массив до 12 элементов
+      topScore,
+      carRef,
+      carTop
+    });
+  } catch (error) {
+    console.error('Ошибка при обновлении данных в базе данных:', error);
+    alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
+  }
 
     // Сбрасываем стили и переменные
     movingCarElement.style.transform = '';
@@ -295,12 +333,14 @@ function earnCoins() {
   balance += earnRate;
   updateInfoPanels();
 
-  // Обновляем данные в базе данных после заработка монет
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  updateUserData(telegramId, { balance, inventory: ownedCars, topScore, carRef, carTop }); // Обновляем данные в БД
+  updateUserData(telegramId, { balance, inventory: JSON.stringify(ownedCars), topScore, carRef, carTop });
 }
-  
-  setInterval(earnCoins, 600); // Запускаем заработок монет каждую минуту
+
+setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
+
+
+
 
 
   
@@ -567,3 +607,4 @@ console.log(document.getElementById('shop'));
 document.getElementById('shopButton').addEventListener('click', () => {
   console.log('Shop button clicked'); // Должен вывести сообщение при клике
 });
+

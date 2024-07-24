@@ -48,17 +48,16 @@ main(); // Вызываем функцию main() для запуска прил
 // Получение данных пользователя
 async function getUserData(telegramId) {
   try {
-    const userRef = dbRef.child(`users/${telegramId}`);
-    const snapshot = await userRef.once('value');
+    const snapshot = await dbRef.child(`users/${telegramId}`).once('value');
 
     if (snapshot.exists()) {
       const userData = snapshot.val();
 
-      // Инициализируем inventory с объектами машинок
-      userData.inventory = {};
+      // Инициализируем inventory с объектами машинок, если данных нет или они некорректны
+      userData.inventory = userData.inventory || {};
       for (let i = 0; i < 12; i++) {
-        const carData = snapshot.child(`inventory/${i}`).val();
-        userData.inventory[i] = carData || { level: 0, name: `Car ${i + 1}` }; // Если данных нет, создаем объект по умолчанию
+        const carData = userData.inventory[i.toString()];
+        userData.inventory[i] = carData || { level: 0, name: `Car ${i + 1}` };
       }
 
       // Проверяем и корректируем остальные поля (balance, topScore и т.д.)
@@ -72,11 +71,11 @@ async function getUserData(telegramId) {
       return userData;
     } else {
       console.log("User not found");
-      return null; // Возвращаем null, если пользователь не найден
+      return null;
     }
   } catch (error) {
     console.error('Ошибка при загрузке данных пользователя:', error);
-    throw error; // Передаем ошибку дальше для обработки
+    throw error;
   }
 }
 
@@ -88,21 +87,24 @@ async function getUserData(telegramId) {
 // Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
-    const userRef = dbRef.child(`users/${telegramId}`);
-
-    // Обновляем каждый слот инвентаря отдельно
-    if (updates.inventory) {
-      for (let i = 0; i < updates.inventory.length; i++) {
-        await userRef.child(`inventory/${i}`).set(updates.inventory[i]);
-      }
-      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
+    // Проверяем, что inventory - это массив
+    if (updates.inventory && !Array.isArray(updates.inventory)) {
+      throw new Error('Inventory data must be an array');
     }
 
-    // Обновляем остальные поля
-    await userRef.update(updates);
+    // Преобразуем inventory в объект, если это массив
+    if (Array.isArray(updates.inventory)) {
+      const inventoryObj = {};
+      for (let i = 0; i < updates.inventory.length; i++) {
+        inventoryObj[i] = updates.inventory[i];
+      }
+      updates.inventory = inventoryObj;
+    }
+
+    await dbRef.child(`users/${telegramId}`).update(updates);
   } catch (error) {
     console.error('Error updating user data:', error);
-    throw error; 
+    throw error;
   }
 }
 
@@ -122,45 +124,34 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
     let userData = await getUserData(telegramId);
 
     if (!userData) {
-      // Если пользователь не найден, создаем новый профиль
       console.log('User not found, creating default profile...');
       const newUserData = {
         telegram_id: telegramId,
         username: username,
         name: name,
         balance: 0,
-        inventory: JSON.stringify(new Array(12).fill(null)), // Массив из 12 null
+        inventory: {}, // Изначально пустой объект inventory
         topScore: 0,
         created_at: new Date().toISOString()
       };
+
+      // Заполняем inventory машинами по умолчанию
+      for (let i = 0; i < 12; i++) {
+        newUserData.inventory[i] = { level: 0, name: `Car ${i + 1}` };
+      }
+
       await updateUserData(telegramId, newUserData);
       userData = newUserData;
       console.log('Default profile created:', userData);
-    } else {
-      // Если пользователь найден, проверяем и корректируем данные
-      userData.balance = userData.balance || 0;
-      userData.topScore = userData.topScore || 0;
-      userData.name = userData.name || "";
-      userData.username = userData.username || "";
-      userData.telegram_id = userData.telegram_id || "";
-
-      // Проверяем и корректируем inventory, если нужно
-      if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
-        userData.inventory = new Array(12).fill(null);
-        await updateUserData(telegramId, { inventory: JSON.stringify(userData.inventory) }); // Обновляем inventory в базе данных
-      }
     }
 
-    // Обновляем глобальные переменные
-    balance = userData.balance;
-    ownedCars = JSON.parse(userData.inventory); 
-    topScore = userData.topScore;
+    balance = userData.balance || 0;
+    ownedCars = Object.values(userData.inventory); // Преобразуем inventory в массив
+    topScore = userData.topScore || 0;
 
-    // Обновляем интерфейс
     updateInfoPanels();
     displayCars();
 
-    // Приветственное сообщение
     const welcomeMessageElement = document.getElementById('welcomeMessage');
     if (name) {
       welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;

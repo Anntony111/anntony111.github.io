@@ -1,59 +1,67 @@
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getFirestore, doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+
+// Ваша конфигурация Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyDd51tU1028m5GxbpwVbce6r0llY20moi0",
-  authDomain: "telegram-game-db.firebaseapp.com",
-  databaseURL: "https://telegram-game-db-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "telegram-game-db",
-  storageBucket: "telegram-game-db.appspot.com",
-  messagingSenderId: "497842898968",
-  appId: "1:497842898968:web:9445995ee92c67dd851b6d",
-  measurementId: "G-BVT2RTKGSJ"
+  apiKey: "AIzaSyAnSmjHzqZOSkjWXqvKo1LvNOWRnVtrk7U",
+  authDomain: "miniapp-af39e.firebaseapp.com",
+  projectId: "miniapp-af39e",
+  storageBucket: "miniapp-af39e.appspot.com",
+  messagingSenderId: "683519382191",
+  appId: "1:683519382191:web:e731950afeafb1ec537a5a",
+  measurementId: "G-XXJW8JV8YD"
 };
 
 
 
 
 
-// Инициализация Firebase 
-const app = firebase.initializeApp(firebaseConfig); // Убираем .compat из названия
-
-// Инициализация Realtime Database (без getDatabase)
+// Инициализация Firebase (без изменений)
+const app = firebase.initializeApp(firebaseConfig);
+const analytics = firebase.getAnalytics(app); // Если вы используете Analytics
 const database = firebase.database();
 const dbRef = database.ref(); 
 
+
+
  
 
-// Получение данных пользователя
+import { doc, getDoc } from "firebase/firestore";
+
 async function getUserData(telegramId) {
   try {
-    const snapshot = await get(child(dbRef, `users/${telegramId}`));
+    const snapshot = await dbRef.child(`users/${telegramId}`).once('value'); // Получаем данные из Realtime Database
+
     if (snapshot.exists()) {
       const userData = snapshot.val();
 
-      // Проверяем, является ли inventory строкой JSON
-      if (typeof userData.inventory === 'string') {
-        try {
-          userData.inventory = JSON.parse(userData.inventory); // Преобразуем в массив
-        } catch (jsonError) {
-          console.error('Ошибка при преобразовании inventory из JSON:', jsonError);
-          // Если преобразование не удалось, можно вернуть пустой массив или null
-          userData.inventory = []; 
-        }
-      } else if (!Array.isArray(userData.inventory)) {
-        // Если inventory не строка и не массив, устанавливаем пустой массив
-        userData.inventory = [];
+      // Проверяем и корректируем inventory, если нужно
+      if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
+        userData.inventory = new Array(12).fill(null);
       }
+
+      // Проверяем и корректируем остальные поля, если нужно
+      userData.balance = userData.balance || 0;
+      userData.topScore = userData.topScore || 0; // Обратите внимание: topScore (camelCase)
+      userData.carRef = userData.carRef || null;  // Обратите внимание: carRef (camelCase)
+      userData.carTop = userData.carTop || null;  // Обратите внимание: carTop (camelCase)
+      userData.name = userData.name || "";
+      userData.username = userData.username || "";
+      userData.telegram_id = userData.telegram_id || "";
 
       console.log("Fetched user data:", userData);
       return userData;
     } else {
       console.log("User not found");
-      return null;
+      return null; // Возвращаем null, если пользователь не найден
     }
   } catch (error) {
     console.error('Ошибка при загрузке данных пользователя:', error);
     throw error; 
   }
 }
+
 
 
 
@@ -71,7 +79,7 @@ async function updateUserData(telegramId, updates) {
       inventory: JSON.stringify(updates.inventory)
     };
 
-    await update(ref(database, `users/${telegramId}`), updatesWithJsonInventory);
+    await dbRef.child(`users/${telegramId}`).update(updatesWithJsonInventory); // Изменение здесь
   } catch (error) {
     console.error('Error updating user data:', error);
     throw error; // Передаем ошибку дальше для обработки

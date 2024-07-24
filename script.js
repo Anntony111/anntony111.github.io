@@ -148,22 +148,16 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
         topScore: 0,
         created_at: new Date().toISOString()
       };
-      await updateUserData(telegramId, newUserData);
+
+      await updateUserData(telegramId, newUserData); // Сохраняем профиль в базе данных
       userData = await getUserData(telegramId); // Получаем обновленные данные
       console.log('Default profile created:', userData);
-    } else {
-      // Если пользователь найден, проверяем и корректируем данные
-      userData.balance = userData.balance || 0;
-      userData.topScore = userData.topScore || 0;
-      userData.name = userData.name || "";
-      userData.username = userData.username || "";
-      userData.telegram_id = userData.telegram_id || "";
     }
 
     // Заполняем ownedCars данными из инвентаря
     ownedCars = [];
     for (let i = 0; i < 12; i++) {
-      const carData = userData.inventory[i.toString()];
+      const carData = userData.inventory[i.toString()]; // Получаем данные машинки по ключу-строке
       ownedCars.push(carData || null); // Добавляем null, если слот пустой
     }
 
@@ -183,6 +177,7 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
     alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
   }
 })();
+
 
 
 

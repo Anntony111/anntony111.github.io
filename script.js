@@ -10,11 +10,12 @@ import { getDatabase, ref, child, get, update } from 'https://www.gstatic.com/fi
 const firebaseConfig = {
   apiKey: "AIzaSyAnSmjHzqZOSkjWXqvKo1LvNOWRnVtrk7U",
   authDomain: "miniapp-af39e.firebaseapp.com",
+  databaseURL: "https://miniapp-af39e-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "miniapp-af39e",
   storageBucket: "miniapp-af39e.appspot.com",
   messagingSenderId: "683519382191",
-  appId: "1:683519382191:web:e731950afeafb1ec537a5a",
-  measurementId: "G-XXJW8JV8YD"
+  appId: "1:683519382191:web:ed9490e888055ec5537a5a",
+  measurementId: "G-YDK2323MKK"
 };
 
 
@@ -33,21 +34,25 @@ const dbRef = database.ref();
 // Получение данных пользователя
 async function getUserData(telegramId) {
   try {
-    const snapshot = await dbRef.child(`users/${telegramId}`).once('value'); // Получаем данные из Realtime Database
+    const userRef = dbRef.child(`users/${telegramId}`);
+    const snapshot = await userRef.once('value');
 
     if (snapshot.exists()) {
       const userData = snapshot.val();
 
-      // Проверяем и корректируем inventory, если нужно
-      if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
-        userData.inventory = new Array(12).fill(null);
+      // Инициализируем inventory, если он пустой или не существует
+      userData.inventory = userData.inventory || {}; 
+
+      // Заполняем массив ownedCars данными из инвентаря
+      ownedCars = [];
+      for (let i = 0; i < 12; i++) {
+        const carData = userData.inventory[i.toString()]; // Получаем данные машинки по индексу-строке
+        ownedCars.push(carData ? { name: carData.name, level: carData.level } : null);
       }
 
       // Проверяем и корректируем остальные поля, если нужно
       userData.balance = userData.balance || 0;
-      userData.topScore = userData.topScore || 0; 
-      userData.carRef = userData.carRef || null;  
-      userData.carTop = userData.carTop || null; 
+      userData.topScore = userData.topScore || 0;
       userData.name = userData.name || "";
       userData.username = userData.username || "";
       userData.telegram_id = userData.telegram_id || "";
@@ -60,9 +65,10 @@ async function getUserData(telegramId) {
     }
   } catch (error) {
     console.error('Ошибка при загрузке данных пользователя:', error);
-    throw error; 
+    throw error; // Передаем ошибку дальше для обработки
   }
 }
+
 
 
 
@@ -70,21 +76,21 @@ async function getUserData(telegramId) {
 // Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
-    // Проверяем, что inventory - это массив
-    if (!Array.isArray(updates.inventory)) {
-      throw new Error('Inventory data must be an array');
+    const userRef = dbRef.child(`users/${telegramId}`);
+
+    // Обновляем каждый слот инвентаря отдельно
+    if (updates.inventory) {
+      for (let i = 0; i < updates.inventory.length; i++) {
+        await userRef.child(`inventory/${i}`).set(updates.inventory[i]);
+      }
+      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
-    // Преобразуем inventory в JSON-строку
-    const updatesWithJsonInventory = {
-      ...updates,
-      inventory: JSON.stringify(updates.inventory)
-    };
-
-    await dbRef.child(`users/${telegramId}`).update(updatesWithJsonInventory);
+    // Обновляем остальные поля
+    await userRef.update(updates);
   } catch (error) {
     console.error('Error updating user data:', error);
-    throw error;
+    throw error; 
   }
 }
 
@@ -493,7 +499,7 @@ document.getElementById("shop").addEventListener("click", (event) => {
   const inventory = document.getElementById('inventory');
   
   function adjustInventoryHeight() {
-    const shopHeaderHeight = shopHeader.offsetHeight; // Получаем высоту заголовка
+    const shopHeaderHeight = shopHeader?.offsetHeight || 0; // Если shopHeader null, используем 0
     const viewportHeight = window.innerHeight; // Получаем высоту области просмотра
     const maxHeight = viewportHeight - shopHeaderHeight - 40; // Вычисляем максимальную высоту инвентаря
   
@@ -524,7 +530,7 @@ document.getElementById("shop").addEventListener("click", (event) => {
 document.addEventListener('DOMContentLoaded', function() {
   var backgroundMusic = document.getElementById('backgroundMusic');
   backgroundMusic.volume = 0.1; // Установите громкость на 10%
-  backgroundMusic.play();
+
 });
 
 let cloud; // Объявляем переменную cloud глобально

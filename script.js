@@ -5,6 +5,7 @@ import { getDatabase, ref, child, get, update } from 'https://www.gstatic.com/fi
 
 
 
+document.addEventListener('DOMContentLoaded', showProfile); 
 
 // Ваша конфигурация Firebase
 const firebaseConfig = {
@@ -355,8 +356,11 @@ async function endMove(event) {
 
         // Проверка, что оба слота не пустые (level > 0) и уровни совпадают, а также что целевой слот не занят машиной
         if (targetCar && draggedCar && draggedCar.level > 0 && targetCar.level > 0 && draggedCar.level === targetCar.level && targetCar.level < 10) {
-          ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
-          ownedCars[movingCarIndex].level = 0; // Обнуляем уровень исходной машинки
+          if (!ownedCars[targetIndex]) {
+            ownedCars[targetIndex] = { ...targetCar };  // Create the car object if it doesn't exist
+          }
+          ownedCars[targetIndex].level++; // Now you can safely increment
+          ownedCars[movingCarIndex] = null; // Clear the source slot
         } else if (targetCar && targetCar.level === 0) { // Если целевой слот пустой, просто переносим машинку
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
         } else {
@@ -722,35 +726,64 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 
 async function showProfile() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  const profileMenu = document.getElementById('profileMenu'); // Получаем элемент profileMenu
 
   try {
     const userData = await getUserData(telegramId);
 
-    if (userData && profileMenu) { // Проверяем, что userData и profileMenu не null
-      document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
-      document.getElementById('profileBalance').textContent = userData.balance;
-      document.getElementById('profileCarRef').textContent = userData.car_ref;
-      document.getElementById('profileCarTop').textContent = userData.car_top;
-      // Заполняем остальные поля профиля данными из userData
+    if (userData) {
+      // Get references to profile elements
+      const profileNameElement = document.getElementById('profileName');
+      const profileBalanceElement = document.getElementById('profileBalance');
+      const profileCarRefElement = document.getElementById('profileCarRef');
+      const profileCarTopElement = document.getElementById('profileCarTop');
+      const profileUsernameElement = document.getElementById('profileUsername');
+      const profileTopScoreElement = document.getElementById('profileTopScore');
+      const profileCreatedAtElement = document.getElementById('profileCreatedAt');
 
-      profileMenu.style.display = 'block'; // Показываем меню профиля
+      // Check if all elements exist before setting textContent
+      if (
+        profileNameElement &&
+        profileBalanceElement &&
+        profileCarRefElement &&
+        profileCarTopElement &&
+        profileUsernameElement &&
+        profileTopScoreElement &&
+        profileCreatedAtElement
+      ) {
+        profileNameElement.textContent = userData.name || "Имя не установлено";
+        profileBalanceElement.textContent = userData.balance;
+        profileCarRefElement.textContent = userData.car_ref || 0;
+        profileCarTopElement.textContent = userData.car_top || 0;
+        profileUsernameElement.textContent = userData.username || "Имя пользователя не установлено";
+        profileTopScoreElement.textContent = userData.topScore;
+        profileCreatedAtElement.textContent = userData.created_at ? new Date(userData.created_at).toLocaleString() : "Недоступно";
+
+        // Show the profile menu
+        document.getElementById('profileMenu').style.display = 'block';
+      } else {
+        console.error('Some profile elements not found.');
+        alert('Некоторые элементы профиля не найдены. Пожалуйста, перезагрузите страницу.');
+      }
     } else {
-      // Обработка ситуации, когда данные пользователя не найдены в базе данных
-      console.error('Данные пользователя или profileMenu не найдены.');
-      // Можно добавить вывод сообщения пользователю или другие действия
+      console.error('User data not found.');
+      alert('Данные пользователя не найдены. Пожалуйста, перезагрузите страницу.');
     }
   } catch (error) {
-    console.error('Ошибка при получении данных пользователя:', error);
+    console.error('Error fetching user data:', error);
     alert("Произошла ошибка при загрузке профиля. Пожалуйста, попробуйте еще раз.");
   }
+
+  // Update the welcome message
   const welcomeMessageElement = document.getElementById('welcomeMessage');
-  if (name) {
-    welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
-  } else {
-    welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
-  }
+  const name = userData?.name || "Пользователь"; // Use userData if available
+  welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
 }
+
+// Call showProfile after the DOM is loaded
+document.addEventListener('DOMContentLoaded', showProfile);
+
+
+
 
 
 
@@ -779,4 +812,3 @@ document.getElementById('shopButton').addEventListener('click', () => {
   document.getElementById('shop').style.display = 'flex'; // Показываем магазин
 });
 
-document.addEventListener('DOMContentLoaded', showProfile); // Вызываем showProfile после загрузки DOM

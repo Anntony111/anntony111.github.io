@@ -94,19 +94,10 @@ async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
 
-    // Обновляем каждый слот инвентаря отдельно
+    // Обновляем инвентарь
     if (updates.inventory) {
       const inventoryRef = userRef.child('inventory');
-
-      for (let i = 0; i < updates.inventory.length; i++) {
-        const car = updates.inventory[i];
-        if (car) { // Обновляем только если слот не пустой (car !== null)
-          await inventoryRef.child(i.toString()).set(car);
-        } else {
-          await inventoryRef.child(i.toString()).remove(); // Удаляем пустой слот
-        }
-      }
-
+      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
       delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
@@ -117,7 +108,6 @@ async function updateUserData(telegramId, updates) {
     throw error; 
   }
 }
-
 
 
 const connectingMessage = document.createElement('p');
@@ -439,8 +429,6 @@ document.getElementById("shop").addEventListener("click", async (event) => {
     document.getElementById("shop").style.display = "none";
   }
 });
-
-
 
 
 

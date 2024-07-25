@@ -428,8 +428,8 @@ setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
 
 
   
-document.getElementById("shop").addEventListener("click", async (event) => {
-  if (event.target.classList.contains("buy-button")) {
+document.getElementById('shop').addEventListener('click', async (event) => {
+  if (event.target.classList.contains('buy-button')) {
     const carIndex = parseInt(event.target.dataset.carIndex);
     const car = cars[carIndex];
     const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
@@ -437,28 +437,30 @@ document.getElementById("shop").addEventListener("click", async (event) => {
     if (balance >= car.price) {
       balance -= car.price;
 
-      const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0); // Находим пустой слот
+      let emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
+
+      // If no empty slot, try to find a slot with the same car
+      if (emptySlotIndex === -1) {
+        emptySlotIndex = ownedCars.findIndex(slot => slot?.name === car.name && slot.level < 10);
+      }
 
       if (emptySlotIndex !== -1) {
-        ownedCars[emptySlotIndex] = { ...car }; 
+        if (ownedCars[emptySlotIndex]?.name === car.name) {
+          ownedCars[emptySlotIndex].level++; // Upgrade existing car
+        } else {
+          ownedCars[emptySlotIndex] = { ...car }; // Add new car
+        }
 
         try {
-          await updateUserData(telegramId, { 
-            balance, 
-            inventory: ownedCars,  // Передаем массив ownedCars напрямую
-            topScore
-          });
-
+          await updateUserData(telegramId, { balance, inventory: ownedCars, topScore });
           displayCars();
           updateEarnRate();
           updateInfoPanels();
         } catch (error) {
           console.error("Ошибка при обновлении данных в базе данных:", error);
           alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
-
-          // Восстанавливаем баланс и слот инвентаря, если обновление не удалось
           balance += car.price;
-          ownedCars[emptySlotIndex] = null; 
+          ownedCars[emptySlotIndex] = null; // Reset the slot if update fails
         }
       } else {
         alert("Превышен лимит гаража!");
@@ -466,8 +468,8 @@ document.getElementById("shop").addEventListener("click", async (event) => {
     } else {
       alert("Недостаточно средств!");
     }
-  } else if (event.target.id === "closeShopButton") {
-    document.getElementById("shop").style.display = "none";
+  } else if (event.target.id === 'closeShopButton') {
+    document.getElementById('shop').style.display = 'none';
   }
 });
 
@@ -768,7 +770,8 @@ console.log(document.getElementById('inventory')); // Должен вывест�
 console.log(document.getElementById('shop'));
 
 document.getElementById('shopButton').addEventListener('click', () => {
-  console.log('Shop button clicked'); // Должен вывести сообщение при клике
+  displayShop();
+  document.getElementById('shop').style.display = 'flex'; // Показываем магазин
 });
 
 document.addEventListener('DOMContentLoaded', showProfile); // Вызываем showProfile после загрузки DOM

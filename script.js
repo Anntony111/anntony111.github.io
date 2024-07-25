@@ -83,11 +83,21 @@ async function main() {
           created_at: new Date().toISOString()
         };
 
-        // Инициализируем инвентарь с пустыми слотами (null)
-        for (let i = 1; i <= 12; i++) {
-          newUserData[`inventar${i}`] = null;
-        }
+        // Инициализируем каждый слот инвентаря отдельно
+        await updateUserData(telegramId, { inventar1: null });
+        await updateUserData(telegramId, { inventar2: null });
+        await updateUserData(telegramId, { inventar3: null });
+        await updateUserData(telegramId, { inventar4: null });
+        await updateUserData(telegramId, { inventar5: null });
+        await updateUserData(telegramId, { inventar6: null });
+        await updateUserData(telegramId, { inventar7: null });
+        await updateUserData(telegramId, { inventar8: null });
+        await updateUserData(telegramId, { inventar9: null });
+        await updateUserData(telegramId, { inventar10: null });
+        await updateUserData(telegramId, { inventar11: null });
+        await updateUserData(telegramId, { inventar12: null });
 
+        // Обновляем остальные поля пользователя
         await updateUserData(telegramId, newUserData);
       }
     } catch (error) {

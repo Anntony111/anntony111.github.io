@@ -256,6 +256,7 @@ function displayCars() {
 
 
 
+
 let movingCarIndex = null;
 let movingCarElement = null;
 
@@ -407,7 +408,7 @@ document.getElementById("shop").addEventListener("click", async (event) => {
     if (balance >= car.price) {
       balance -= car.price;
 
-      const emptySlotIndex = ownedCars.findIndex(slot => slot === null); // Находим пустой слот
+      const emptySlotIndex = ownedCars.findIndex(slot => slot === null || slot === undefined); // Находим пустой слот
 
       if (emptySlotIndex !== -1) {
         ownedCars[emptySlotIndex] = { ...car };

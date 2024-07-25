@@ -75,7 +75,7 @@
             telegram_id: telegramId,
             username: username,
             name: name,
-            balance: 0,
+            balance: 3000,
             inventory: {},
             topScore: 0,
             car_ref: 0, 
@@ -177,24 +177,17 @@
   // Развернуть на весь экран при загрузке
   Telegram.WebApp.expand();
 
-  // Массив с данными о машинках (замените на свои данные)
-  const cars = [
-    { name: "1", image: "muscle_car.png", level: 1, price: 10 },
-    { name: "2", image: "sports_car.png", level: 2, price: 100 },
-    { name: "3", image: "muscle_car.png", level: 3, price: 1000 },
-    { name: "4", image: "sports_car.png", level: 4, price: 10000 },
-    { name: "5", image: "muscle_car.png", level: 5, price: 100000 },
-    { name: "6", image: "sports_car.png", level: 6, price: 1000000 },
-    { name: "7", image: "muscle_car.png", level: 7, price: 10000000 },
-    { name: "8", image: "sports_car.png", level: 8, price: 100000000 },
-    { name: "9", image: "muscle_car.png", level: 9, price: 1000000000 },
-    { name: "10", image: "sports_car.png", level: 10, price: 10000000000 },
-  ];
+
+
+  import cars from './car.js'; // Импортируем данные о машинах
+ 
+
+  
 
   let ownedCars = new Array(12).fill(null); // Создаем массив из 12 пустых слотов для машинок
 
   // Переменные для хранения данных
-  let balance = 10;
+  let balance = 3000;
   let earnRate = 0;
   let topScore = 0;
   let carRef = null;  // Объявляем carRef глобально
@@ -360,26 +353,22 @@
 
 
 
+ 
   // Функция для обновления скорости заработка
-  function updateEarnRate() {
-    earnRate = ownedCars.reduce((sum, car) => sum + (car ? car.level : 0), 0); // Суммируем уровни всех машинок, учитывая null значения
-    document.getElementById("earnRate").textContent = `${earnRate}/мин`;
-  }
+function updateEarnRate() {
+  earnRate = ownedCars.reduce((sum, car) => sum + (car ? parseFloat(car.goldPerSecond) : 0), 0);
+  document.getElementById("earnRate").textContent = `${earnRate.toFixed(1)}/сек`;
+}
 
-  function earnCoins() {
-    balance += earnRate;
-    updateInfoPanels();
+function earnCoins() {
+  balance += earnRate * 30; // Заработок за 30 секунд, где earnRate - это золото в секунду
+  updateInfoPanels();
 
-    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  updateUserData(telegramId, { balance, inventory: ownedCars, topScore }); 
+}
 
-    // Создаем копию массива ownedCars перед обновлением
-    const updatedOwnedCars = [...ownedCars];
-
-    updateUserData(telegramId, { balance, inventory: updatedOwnedCars, topScore }); // Передаем копию массива ownedCars
-  }
-
-
-  setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
+setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 секунд
 
 
 
@@ -470,10 +459,11 @@ function displayShop(telegramId) {
     carImage.alt = car.name;
     shopItem.appendChild(carImage); 
 
-    const carInfo = document.createElement("div"); 
+    const carInfo = document.createElement("div");
     carInfo.innerHTML = `
-      <p>Уровень: ${car.level}</p>
+      <p>Name: ${car.name}</p>
       <p>Цена: ${car.price}</p>
+      <p>Доходность: ${car.goldPerSecond}/сек</p> 
     `;
 
     // Создаем кнопку "Купить" для каждой машины

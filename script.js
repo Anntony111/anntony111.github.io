@@ -679,58 +679,47 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 });
 
 
-// Объявление переменных вне функции
+
+
+// Функция для отображения профиля
+async function showProfile() {
 const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || '1';
 const username = Telegram.WebApp.initDataUnsafe?.user?.username || "Не указано";
 const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
 
-async function showProfile() {
-  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  const username = Telegram.WebApp.initDataUnsafe?.user?.username || "Не указано";
-  const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
   const profileMenu = document.getElementById('profileMenu');
 
-  let isProfileLoaded = false;
+  try {
+    const userData = await getUserData(telegramId);
 
-  while (!isProfileLoaded) {
-    try {
-      const userData = await getUserData(telegramId);
+    if (userData && profileMenu) {
+      document.getElementById('profileName').textContent = name;
+      document.getElementById('profileTelegramId').textContent = telegramId;
+      document.getElementById('profileUsername').textContent = username;
+      document.getElementById('profileBalance').textContent = userData.balance;
+      document.getElementById('profileCarRef').textContent = userData.car_ref || 0; // Если car_ref нет, выводим 0
+      document.getElementById('profileCarTop').textContent = userData.car_top || 0; // Если car_top нет, выводим 0
 
-      if (userData && profileMenu) {
-        // Проверяем наличие только balance и car_ref/car_top
-        if (
-          userData.hasOwnProperty('balance') 
-        ) {
-          document.getElementById('profileName').textContent = name;
-          document.getElementById('profileTelegramId').textContent = telegramId;
-          document.getElementById('profileUsername').textContent = username;
-          document.getElementById('profileBalance').textContent = userData.balance;
-          document.getElementById('profileCarRef').textContent = userData.car_ref || "Не указано";
-          document.getElementById('profileCarTop').textContent = userData.car_top || "Не указано";
-
-          profileMenu.style.display = 'block';
-          isProfileLoaded = true;
-        } else {
-          console.error('Не все данные пользователя найдены.');
-        }
-      } else {
-        console.error('Данные пользователя или profileMenu не найдены.');
-      }
-    } catch (error) {
-      console.error('Ошибка при получении данных пользователя:', error);
+      profileMenu.style.display = 'block'; // Показываем меню профиля
+    } else {
+      console.error('Данные пользователя или profileMenu не найдены.');
     }
-
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
-  }
-
-  // Вывод приветственного сообщения (только один раз)
-  const welcomeMessageElement = document.getElementById('welcomeMessage');
-  if (name) {
-    welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
-  } else {
-    welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
+  } catch (error) {
+    console.error('Ошибка при получении данных пользователя:', error);
   }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const profileButton = document.getElementById('profileButton');
+  const profileMenu = document.getElementById('profileMenu');
+  const closeProfileButton = document.getElementById('closeProfileButton');
+
+  profileButton.addEventListener('click', showProfile); // Вызываем showProfile при клике на кнопку
+
+  closeProfileButton.addEventListener('click', () => {
+    profileMenu.style.display = 'none'; // Скрываем меню профиля при клике на "Закрыть"
+  });
+});
 
 
 

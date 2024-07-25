@@ -18,7 +18,18 @@
     measurementId: "G-YDK2323MKK"
   };
 
-
+  function abbreviateNumber(number) {
+    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc'];
+    const tier = Math.log10(number) / 3 | 0; // Определяем порядок величины числа
+  
+    if (tier === 0) return number.toLocaleString(); // До 1000 не сокращаем
+  
+    const suffix = suffixes[tier];
+    const scale = Math.pow(10, tier * 3);
+    const scaled = number / scale;
+    return scaled.toFixed(2) + suffix; 
+  }
+  
 
 
   // Инициализация Firebase
@@ -355,10 +366,10 @@
 
  
   // Функция для обновления скорости заработка
-function updateEarnRate() {
-  earnRate = ownedCars.reduce((sum, car) => sum + (car ? parseFloat(car.goldPerSecond) : 0), 0);
-  document.getElementById("earnRate").textContent = `${earnRate.toFixed(1)}/сек`;
-}
+  function updateEarnRate() {
+    earnRate = ownedCars.reduce((sum, car) => sum + (car ? parseFloat(car.goldPerSecond) : 0), 0);
+    document.getElementById("earnRate").textContent = `${abbreviateNumber(earnRate)}/сек`; // Используем abbreviateNumber
+  }
 
 function earnCoins() {
   balance += earnRate * 30; // Заработок за 30 секунд, где earnRate - это золото в секунду
@@ -427,11 +438,12 @@ setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 с�
   }
 
   // Функция для обновления значений в табличках
-  function updateInfoPanels() {
-    document.getElementById("balance").textContent = balance;
-    document.getElementById("earnRate").textContent = `${earnRate}/мин`;
-    document.getElementById("topScore").textContent = topScore;
-  }
+function updateInfoPanels() {
+  document.getElementById("balance").textContent = abbreviateNumber(balance); // Сокращаем баланс
+  document.getElementById("earnRate").textContent = `${earnRate.toFixed(1)}/мин`;
+  document.getElementById("topScore").textContent = topScore;
+}
+
 
 
 
@@ -461,9 +473,9 @@ function displayShop(telegramId) {
 
     const carInfo = document.createElement("div"); 
     carInfo.innerHTML = `
-      <p>Name: ${car.name}</p>
-      <p>Цена: ${car.price.toLocaleString()}</p> // Для удобства чтения больших чисел
-      <p>Доходность: ${car.goldPerSecond} золота/сек</p> 
+      <p>Уровень: ${car.name}</p>
+      <p>Цена: ${abbreviateNumber(car.price)}</p> 
+      <p>Доходность: ${abbreviateNumber(car.goldPerSecond)}/сек</p>
     `;
 
     // Создаем кнопку "Купить" для каждой машины
@@ -710,19 +722,9 @@ async function buyCarHandler(event) {
     closeProfileButton.addEventListener('click', () => {
       profileMenu.style.display = 'none'; // Скрываем меню профиля при клике на "Закрыть"
     });
-  });
+  
 
-
-
-
-
-
-  document.addEventListener('DOMContentLoaded', function() {
-    const profileButton = document.getElementById('profileButton');
-    const profileMenu = document.getElementById('profileMenu');
-    const closeProfileButton = document.getElementById('closeProfileButton');
-
-    profileButton.addEventListener('click', () => {
+      profileButton.addEventListener('click', () => {
       profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
     });
 

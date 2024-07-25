@@ -183,8 +183,8 @@ body {
 
 /* Магазин */
 #shop {
-    display: flex;
-    flex-direction: column; /* Элементы располагаются вертикально */
+    display: flex; /* Используем flexbox для центрирования */
+    flex-direction: column; 
     position: fixed;
     top: 50%;
     left: 50%;
@@ -196,8 +196,12 @@ body {
     background-color: rgba(0, 0, 0, 0.8);
     padding: clamp(20px, 3.5vw, 30px);
     border-radius: 10px;
-    z-index: 10;
-    overflow-y: auto; /* Прокрутка по вертикали */
+    z-index: 1001; 
+    overflow-y: auto;
+}
+
+#shop.open {
+    opacity: 1; /* Видимый при открытии */
 }
 
 /* Заголовок магазина */
@@ -206,76 +210,100 @@ body {
     font-size: clamp(2rem, 4vw, 2.5rem);
     margin-bottom: 20px;
     text-transform: uppercase;
-    position: sticky; /* Фиксируем заголовок */
-    top: 0; /* Прикрепляем к верхней части контейнера */
-    background-color: rgba(0, 0, 0, 0.8); /* Фон заголовка (чтобы не было прозрачности при прокрутке) */
-    z-index: 11; /* Устанавливаем z-index выше, чем у товаров */
-    padding: 10px 0; /* Добавляем отступы сверху и снизу для лучшей видимости */
+    text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700; /* Многослойный неоновый эффект */
+    background-color: transparent; /* Убираем фон */
+    border-radius: 10px 10px 0 0; /* Скругление верхних углов */
+    padding: 10px 0;
+}
+.shop-header h2 {
+    margin: 0;
 }
 
-/* Контейнер для товаров */
-.shop-items { /* Новый контейнер для товаров */
+#closeShopButton {
+    position: absolute;
+    top: 10px;
+    right: 10px; 
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #ffd700;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+#closeShopButton:hover {
+    color: #ff6347;
+}
+
+/* Контент магазина */
+#shopContent {
     display: flex;
-    flex-direction: column; /* Товары располагаются вертикально */
-    width: 100%;
+    flex-direction: column;
+    align-items: center; /* Центрируем машины по горизонтали */
+    gap: 20px;
 }
 
-/* Элементы магазина */
+/* Карточки товаров */
 .shop-item {
-    display: flex;
-    justify-content: center; /* Центрируем элементы */
-    align-items: center;
-    background-color: rgba(34, 34, 34, 0.9); /* Более темный фон */
-    color: #fff;
-    padding: clamp(20px, 3vh, 25px); /* Адаптивные отступы */
-    margin-bottom: clamp(20px, 3vh, 25px); /* Адаптивные отступы */
-    border-radius: 10px; /* Увеличиваем скругление углов */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Добавляем тень */
-    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Переходы для эффекта при наведении */
-    width: 50%; /* Увеличиваем ширину */
-    max-width: 650px; /* Устанавливаем максимальную ширину */
+    background: linear-gradient(135deg, #222, #333); /* Градиентный фон */
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 80%; /* Увеличиваем ширину карточек */
+    max-width: 500px; /* Но ограничиваем максимальную ширину */
     text-align: center; /* Центрируем текст */
-    display: grid; /* Используем grid для лучшего расположения элементов */
-  grid-template-columns: 1fr auto; /* Одна колонка для текста, другая для кнопки */
-  gap: 20px; /* Отступ между текстом и кнопкой */
-  width: 100%; /* Товары занимают всю ширину контейнера */
-}
-
-.shop-item img {
-    max-width: 250px; /* Увеличиваем максимальную ширину */
-    height: auto; /* Автоматическая высота */
-    border-radius: 7px; /* Скругляем углы изображений */
-    margin-right: 70px; /* Добавляем отступ справа от изображения */
+    display: grid; 
+    grid-template-columns: 1fr auto; 
+    gap: 20px; 
 }
 
 .shop-item:hover {
-    transform: scale(1.02); /* Легкое увеличение при наведении */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Увеличиваем тень при наведении */
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.shop-item img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Тень для изображения */
+}
+
+.shop-item .car-info { /* Добавляем контейнер для информации о машине */
+    text-align: left; /* Выравниваем текст по левому краю */
+}
+
+.shop-item h3 {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.shop-item p {
+    color: #ccc;
+    margin: 5px 0;
 }
 
 /* Кнопка "Купить" */
 .buy-button {
-    background-color: #ffd700; /* Оранжевый фон */
-    color: #002; /* Темно-синий текст */
-    padding: 15px 30px; /* Увеличенные отступы */
+    background: linear-gradient(to bottom, #ffd700, #ff9800);
+    color: #222;
+    padding: 10px 20px;
     border: none;
-    border-radius: 25px; /* Скругленные углы */
-    font-size: 1.2rem; /* Увеличенный размер шрифта */
+    border-radius: 5px;
     font-weight: bold;
-    cursor: pointer; /* Указатель при наведении */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Начальная тень */
-    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Плавные переходы */
-  }
-  
-  .buy-button:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Увеличенная тень при наведении */
-    transform: translateY(-2px); /* Легкий подъем при наведении */
-  }
-  
-  .buy-button:active {
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Уменьшенная тень при нажатии */
-    transform: translateY(0); /* Возвращение на место при нажатии */
-  }
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Тень для кнопки */
+    margin-top: auto; /* Прижимаем кнопку к низу */
+}
+
+.buy-button:hover {
+    background: linear-gradient(to bottom, #ff9800, #ffd700);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Увеличенная тень при наведении */
+}
 
   .cloud {
     position: absolute;
@@ -331,7 +359,7 @@ body {
 #profileButton {
     position: fixed;
     top: 40px;
-    left: 30px; /* Перемещаем кнопку влево */
+    left: 5px; /* Перемещаем кнопку влево */
     background: none;
     border: none;
     cursor: pointer;
@@ -342,34 +370,22 @@ body {
     height: 80px;
 }
 
-#profileMenu {
-    /* ... (стили для содержимого меню) */
-    position: fixed;
-    top: 0;
-    left: -100%; /* Изначально меню скрыто за левой границей */
-    width: 80%; /* Ширина меню */
-    max-width: 300px; /* Максимальная ширина меню */
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 20px;
-    z-index: 11; /* Устанавливаем z-index выше, чем у других элементов */
-    transition: left 0.3s ease-in-out; /* Анимация открытия меню */
-}
-
-#profileMenu.open {
-    left: 0; /* Открываем меню */
-}
 
 #profileContainer {
     position: fixed;
-    top: 120px;
-    left: 33px; 
-    display: flex; /* Располагаем элементы вертикально */
+    top: 20px;
+    left: 15px;
+    display: flex;
     flex-direction: column;
-    align-items: center; /* Центрируем элементы по горизонтали */
-    z-index: 2
+    align-items: center;
+    z-index: 999;
+    transition: opacity 0.5s ease; /* Добавляем плавный переход для opacity */
 }
-
+ 
+  /* Скрываем кнопку и надпись при открытии меню */
+#profileMenu.open ~ #profileContainer {
+  opacity: 0; /* Устанавливаем прозрачность в 0 */
+}
 
 #profileLabel {
     background-color: #ffd700; /* Цвет фона как у кнопок */
@@ -382,3 +398,94 @@ body {
 }
 
 
+/* Общий контейнер профиля */
+#profileMenu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #111, #222);
+    z-index: 1001;
+    overflow-y: auto;
+    transition: opacity 0.5s ease;
+    opacity: 0;
+  }
+  
+  #profileMenu.open {
+    opacity: 1;
+  }
+  
+  /* Заголовок профиля */
+  #profileMenu h2 {
+    color: #ffd700;
+    text-align: center;
+    font-size: 2rem;
+    margin: 20px 0;
+    text-shadow: 0 0 5px #ffd700;
+    font-family: 'Rajdhani', sans-serif;
+  }
+  
+  /* Кнопка закрытия */
+  #closeProfileButton {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #ffd700;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  
+  #closeProfileButton:hover {
+    color: #ff6347; /* Красный при наведении */
+  }
+  
+  /* Информация о профиле */
+  #profileMenu p {
+    display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный белый фон */
+  border-radius: 8px;
+  margin: 10px 0; /* Увеличиваем margin-top до 10px (1 см) */
+  font-family: 'Rajdhani', sans-serif;
+}
+  
+  #profileMenu p:first-child {
+    margin-top: 20px; /* Увеличиваем отступ сверху у первого параграфа на 20px (2 см) */
+}
+  
+  #profileMenu span {
+    font-weight: bold;
+    color: #ffd700;
+  }
+  
+  /* Элемент profileContainer */
+    #profileContainer {
+    position: fixed;
+    top: 20px;
+    left: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1; /* Устанавливаем z-index ниже, чем у меню профиля */
+    transition: opacity 0.5s ease; 
+  }
+  
+ 
+  
+  #profileLabel {
+    background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон */
+    color: #ffd700;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  

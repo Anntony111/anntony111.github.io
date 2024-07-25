@@ -668,23 +668,33 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 
 async function showProfile() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  const profileMenu = document.getElementById('profileMenu'); // Получаем элемент profileMenu
+  const profileMenu = document.getElementById('profileMenu');
 
   try {
     const userData = await getUserData(telegramId);
 
-    if (userData && profileMenu) { // Проверяем, что userData и profileMenu не null
-      document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
-      document.getElementById('profileBalance').textContent = userData.balance;
-      document.getElementById('profileCarRef').textContent = userData.car_ref;
-      document.getElementById('profileCarTop').textContent = userData.car_top;
-      // Заполняем остальные поля профиля данными из userData
+    if (userData) {
+      // Проверяем существование всех элементов профиля перед установкой их значений
+      const profileNameElement = document.getElementById('profileName');
+      const profileBalanceElement = document.getElementById('profileBalance');
+      const profileCarRefElement = document.getElementById('profileCarRef');
+      const profileCarTopElement = document.getElementById('profileCarTop');
 
-      profileMenu.style.display = 'block'; // Показываем меню профиля
+      if (profileNameElement && profileBalanceElement && profileCarRefElement && profileCarTopElement) {
+        profileNameElement.textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
+        profileBalanceElement.textContent = userData.balance;
+        profileCarRefElement.textContent = userData.car_ref || "Не указано"; // Указываем значение по умолчанию, если car_ref не существует
+        profileCarTopElement.textContent = userData.car_top || "Не указано"; // Указываем значение по умолчанию, если car_top не существует
+        // Заполняем остальные поля профиля данными из userData (аналогично)
+
+        profileMenu.style.display = 'block'; // Показываем меню профиля
+      } else {
+        console.error('Один или несколько элементов профиля не найдены.');
+        alert("Произошла ошибка при загрузке профиля. Пожалуйста, попробуйте еще раз.");
+      }
     } else {
-      // Обработка ситуации, когда данные пользователя не найдены в базе данных
-      console.error('Данные пользователя или profileMenu не найдены.');
-      // Можно добавить вывод сообщения пользователю или другие действия
+      console.error('Данные пользователя не найдены.');
+      alert("Данные пользователя не найдены.");
     }
   } catch (error) {
     console.error('Ошибка при получении данных пользователя:', error);

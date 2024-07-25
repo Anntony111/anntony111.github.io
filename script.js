@@ -29,22 +29,28 @@ const dbRef = database.ref();
 
 async function main() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || '1';
-  const username = Telegram.WebApp.initDataUnsafe?.user?.username;
+  const username = Telegram.WebApp.initDataUnsafe?.user?.username || "Не указано";
   const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
 
   let userData;
   let isProfileLoaded = false;
+  let isGameInitialized = false; // Флаг для отслеживания инициализации игры
 
-  while (!isProfileLoaded) {
+  while (!isProfileLoaded || !isGameInitialized) { // Цикл повторяется, пока не загрузится профиль и не инициализируется игра
     try {
       userData = await getUserData(telegramId);
 
       if (userData) {
         console.log(userData.balance);
-        // ... (остальная логика вашего приложения)
 
-        // Выполняем действия, которые должны произойти только один раз после загрузки
+        // Выполняем действия, которые должны произойти только один раз после загрузки профиля
         if (!isProfileLoaded) {
+          showProfile(); // Вызываем функцию для отображения профиля
+          isProfileLoaded = true;
+        }
+
+        // Выполняем действия, которые должны произойти только один раз после инициализации игры
+        if (!isGameInitialized) {
           balance = userData.balance || 0;
           ownedCars = Object.values(userData.inventory);
           topScore = userData.topScore || 0;
@@ -59,7 +65,7 @@ async function main() {
             welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
           }
 
-          isProfileLoaded = true;
+          isGameInitialized = true;
         }
       } else {
         console.log("User not found, creating default profile...");
@@ -87,7 +93,8 @@ async function main() {
   }
 }
 
-main(); // Вызываем функцию main() для запуска приложения
+main();
+
 
 
 
@@ -655,10 +662,12 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 });
 
 
-async function showProfile() {
-  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  const username = Telegram.WebApp.initDataUnsafe?.user?.username || "Не указано"; // Если username нет, выводим "Не указано"
-  const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
+// Объявление переменных вне функции
+const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || '1';
+const username = Telegram.WebApp.initDataUnsafe?.user?.username || "Не указано";
+const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
+
+async function showProfile() { // Объявление функции showProfile
   const profileMenu = document.getElementById('profileMenu');
 
   let isProfileLoaded = false;
@@ -705,6 +714,7 @@ async function showProfile() {
     welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
   }
 }
+
 
 
 

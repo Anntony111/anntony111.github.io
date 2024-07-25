@@ -76,6 +76,8 @@ async function main() {
           balance: 0,
           inventory: {},
           topScore: 0,
+          car_ref: 0, 
+          car_top: 0,
           created_at: new Date().toISOString()
         };
 

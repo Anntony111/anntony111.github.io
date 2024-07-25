@@ -547,19 +547,23 @@ function displayShop(telegramId) {
     }
   }
   
+  let isShopOpen = false; // Флаг для отслеживания состояния магазина
+
   // Обработчик события для кнопки "Магазин"
   document.getElementById("shopButton").addEventListener("click", () => {
-    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id; // Получаем telegramId внутри обработчика
-    displayShop(telegramId); // Передаем telegramId в displayShop
-    document.getElementById("shop").style.display = "flex";
-    console.log("Shop button clicked");
+    if (!isShopOpen) { // Проверяем, открыт ли магазин
+      const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+      displayShop(telegramId);
+      document.getElementById("shop").style.display = "flex";
+      isShopOpen = true; // Устанавливаем флаг, что магазин открыт
+    }
   });
-
-
+  
   // Обработчик события для закрытия магазина
   document.getElementById("shop").addEventListener("click", (event) => {
-    if (event.target.id === "shop") { // Проверяем, что клик был вне элементов магазина
-      document.getElementById("shop").style.display = "none"; // Скрываем магазин
+    if (event.target.id === "closeShopButton") {
+      document.getElementById("shop").style.display = "none";
+      isShopOpen = false; // Сбрасываем флаг, что магазин закрыт
     }
   });
 

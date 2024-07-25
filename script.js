@@ -51,14 +51,6 @@ async function main() {
 
           updateInfoPanels();
           displayCars();
-
-          const welcomeMessageElement = document.getElementById('welcomeMessage');
-          if (name) {
-            welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
-          } else {
-            welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
-          }
-
           showProfile(); // Вызываем showProfile после инициализации игры
 
           isProfileLoaded = true;

@@ -324,23 +324,24 @@ async function endMove(event) {
         const targetCar = ownedCars[targetIndex];
 
         if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
-          ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
-          ownedCars[movingCarIndex] = null; // Очищаем исходный слот
+          ownedCars[targetIndex].level++;
+
+          // Обновляем данные в Firebase Realtime Database перед очисткой слота
+          try {
+            const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+            await updateUserData(telegramId, { inventory: ownedCars });
+          } catch (error) {
+            console.error('Ошибка при обновлении данных в базе данных:', error);
+            alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
+            // Отменяем перемещение, если обновление не удалось
+            [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
+            return; // Прерываем выполнение функции
+          }
+
+          // Очищаем исходный слот только после успешного сохранения в Firebase
+          ownedCars[movingCarIndex] = null;
         } else {
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
-        }
-
-        // Обновляем данные в Firebase Realtime Database
-        try {
-          const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-
-          await updateUserData(telegramId, { inventory: ownedCars });
-        } catch (error) {
-          console.error('Ошибка при обновлении данных в базе данных:', error);
-          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
-
-          // Отменяем перемещение, если обновление не удалось
-          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
         }
       }
     }

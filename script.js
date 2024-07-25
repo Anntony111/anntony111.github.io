@@ -668,26 +668,21 @@ async function showProfile() {
       if (userData && profileMenu) {
         document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
         document.getElementById('profileBalance').textContent = userData.balance;
-        document.getElementById('profileCarRef').textContent = userData.car_ref || "Не указано"; // Если car_ref нет, выводим "Не указано"
-        document.getElementById('profileCarTop').textContent = userData.car_top || "Не указано"; // Если car_top нет, выводим "Не указано"
-
-        // Заполняем остальные поля профиля данными из userData (если есть)
-        // ...
-
-        profileMenu.style.display = 'block';
-        isProfileLoaded = true;
+        document.getElementById('profileCarRef').textContent = userData.car_ref || "Не указано";
+        document.getElementById('profileCarTop').textContent = userData.car_top || "Не указано";
+        profileMenu.style.display = 'block'; 
       } else {
         console.error('Данные пользователя или profileMenu не найдены.');
       }
+
+      isProfileLoaded = true; // Устанавливаем флаг после каждой успешной загрузки 
     } catch (error) {
       console.error('Ошибка при получении данных пользователя:', error);
-      // Не показываем alert, просто ждем и повторяем попытку
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000)); 
   }
 
-  // Вывод приветственного сообщения (только один раз)
   const welcomeMessageElement = document.getElementById('welcomeMessage');
   if (name) {
     welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;

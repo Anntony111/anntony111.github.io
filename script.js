@@ -496,7 +496,11 @@ function displayShop(telegramId) {
   });
 }
   
-  async function buyCarHandler(event) {
+async function buyCarHandler(event) {
+  if (buyButton.disabled || isPurchaseInProgress) {
+      event.stopPropagation(); // Останавливаем всплытие события
+      return; // Предотвращаем повторный вызов
+  }
     const buyButton = event.target;
     const carIndex = buyButton.dataset.carIndex;
     const car = cars[carIndex];

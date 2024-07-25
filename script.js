@@ -510,6 +510,8 @@
     buyButton.disabled = true;
     isPurchaseInProgress = true;
   
+    console.log(`Attempting to purchase car at index: ${carIndex}`);
+  
     if (balance >= car.price) {
       try {
         // Находим первый пустой слот
@@ -553,8 +555,8 @@
     const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id; // Получаем telegramId внутри обработчика
     displayShop(telegramId); // Передаем telegramId в displayShop
     document.getElementById("shop").style.display = "flex";
+    console.log("Shop button clicked");
   });
-
 
 
   // Обработчик события для закрытия магазина

@@ -366,25 +366,55 @@ async function endMove(event) {
 
 
 // Функция для обновления скорости заработка
-function updateEarnRate() {
-  earnRate = ownedCars.reduce((sum, car) => sum + (car ? car.level : 0), 0); // Суммируем уровни всех машинок, учитывая null значения
+async function updateEarnRate() {
+  earnRate = ownedCars.reduce((sum, car) => sum + (car ? car.level : 0), 0);
   document.getElementById("earnRate").textContent = `${earnRate}/мин`;
+
+  // Сохраняем earnRate в базу данных
+  try {
+    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+    await updateUserData(telegramId, { earnRate }); 
+  } catch (error) {
+    console.error('Ошибка при сохранении скорости заработка:', error);
+  }
 }
 
-function earnCoins() {
-  balance += earnRate;
-  updateInfoPanels();
-
+async function earnCoins() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
-  // Создаем копию массива ownedCars перед обновлением
-  const updatedOwnedCars = [...ownedCars];
+  try {
+    const userData = await getUserData(telegramId);
 
-  updateUserData(telegramId, { balance, inventory: updatedOwnedCars, topScore }); // Передаем копию массива ownedCars
+    if (userData) {
+      const lastEarnTime = userData.lastEarnTime || new Date().getTime();
+      const currentTime = new Date().getTime();
+      const timePassedMinutes = Math.floor((currentTime - lastEarnTime) / 60000);
+
+      // Обновляем баланс, учитывая earnRate и прошедшее время
+      balance = userData.balance + timePassedMinutes * userData.earnRate;
+
+      // Обновляем данные в базе данных
+      await updateUserData(telegramId, {
+        balance,
+        lastEarnTime: currentTime,
+        inventory: ownedCars,
+        topScore
+      });
+
+      updateInfoPanels();
+    }
+  } catch (error) {
+    console.error('Ошибка при обновлении баланса:', error);
+  }
 }
 
+// Вызываем earnCoins при старте, чтобы рассчитать заработок, накопленный за время отсутствия
+earnCoins();
 
-setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
+// Обновляем баланс каждую минуту
+setInterval(earnCoins, 60 * 1000); // 60 секунд * 1000 миллисекунд = 1 минута
+
+
 
 
 

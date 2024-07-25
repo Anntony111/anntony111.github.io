@@ -52,20 +52,19 @@ async function getUserData(telegramId) {
     const snapshot = await userRef.once('value');
 
     if (snapshot.exists()) {
+      // User found, check and correct data if needed
       const userData = snapshot.val();
 
-      // Проверяем и корректируем inventory, если нужно
-      if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
+      // Ensure inventory is an object with 12 car slots
+      if (!userData.inventory || typeof userData.inventory !== 'object' || Object.keys(userData.inventory).length !== 12) {
         userData.inventory = {};
         for (let i = 0; i < 12; i++) {
           userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
         }
-
-        // Сохраняем обновленный inventory в базу данных
-        await userRef.update({ inventory: userData.inventory });
+        await userRef.update({ inventory: userData.inventory }); // Save updated inventory
       }
 
-      // Проверяем и корректируем остальные поля (balance, topScore и т.д.)
+      // Ensure other fields exist and have default values
       userData.balance = userData.balance || 0;
       userData.topScore = userData.topScore || 0;
       userData.name = userData.name || "";
@@ -75,14 +74,34 @@ async function getUserData(telegramId) {
       console.log("Fetched user data:", userData);
       return userData;
     } else {
-      console.log("User not found");
-      return null;
+      // User not found, create a new profile with default values
+      console.log("User not found, creating default profile...");
+
+      const newUserData = {
+        telegram_id: telegramId,
+        username: Telegram.WebApp.initDataUnsafe?.user?.username || '',
+        name: (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || ''),
+        balance: 0,
+        inventory: {}, // Create empty inventory
+        topScore: 0,
+        created_at: new Date().toISOString()
+      };
+
+      // Fill inventory with default cars
+      for (let i = 0; i < 12; i++) {
+        newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+      }
+
+      await userRef.set(newUserData); // Create the user data in Firebase
+
+      return newUserData; // Return the newly created data
     }
   } catch (error) {
-    console.error('Ошибка при загрузке данных пользователя:', error);
-    throw error;
+    console.error('Error loading user data:', error);
+    throw error; // Rethrow the error for handling in the calling function
   }
 }
+
 
 
 
@@ -668,33 +687,23 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 
 async function showProfile() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  const profileMenu = document.getElementById('profileMenu');
+  const profileMenu = document.getElementById('profileMenu'); // Получаем элемент profileMenu
 
   try {
     const userData = await getUserData(telegramId);
 
-    if (userData) {
-      // Проверяем существование всех элементов профиля перед установкой их значений
-      const profileNameElement = document.getElementById('profileName');
-      const profileBalanceElement = document.getElementById('profileBalance');
-      const profileCarRefElement = document.getElementById('profileCarRef');
-      const profileCarTopElement = document.getElementById('profileCarTop');
+    if (userData && profileMenu) { // Проверяем, что userData и profileMenu не null
+      document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
+      document.getElementById('profileBalance').textContent = userData.balance;
+      document.getElementById('profileCarRef').textContent = userData.car_ref;
+      document.getElementById('profileCarTop').textContent = userData.car_top;
+      // Заполняем остальные поля профиля данными из userData
 
-      if (profileNameElement && profileBalanceElement && profileCarRefElement && profileCarTopElement) {
-        profileNameElement.textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
-        profileBalanceElement.textContent = userData.balance;
-        profileCarRefElement.textContent = userData.car_ref || "Не указано"; // Указываем значение по умолчанию, если car_ref не существует
-        profileCarTopElement.textContent = userData.car_top || "Не указано"; // Указываем значение по умолчанию, если car_top не существует
-        // Заполняем остальные поля профиля данными из userData (аналогично)
-
-        profileMenu.style.display = 'block'; // Показываем меню профиля
-      } else {
-        console.error('Один или несколько элементов профиля не найдены.');
-        alert("Произошла ошибка при загрузке профиля. Пожалуйста, попробуйте еще раз.");
-      }
+      profileMenu.style.display = 'block'; // Показываем меню профиля
     } else {
-      console.error('Данные пользователя не найдены.');
-      alert("Данные пользователя не найдены.");
+      // Обработка ситуации, когда данные пользователя не найдены в базе данных
+      console.error('Данные пользователя или profileMenu не найдены.');
+      // Можно добавить вывод сообщения пользователю или другие действия
     }
   } catch (error) {
     console.error('Ошибка при получении данных пользователя:', error);
@@ -735,27 +744,3 @@ document.getElementById('shopButton').addEventListener('click', () => {
 });
 
 document.addEventListener('DOMContentLoaded', showProfile); // Вызываем showProfile после загрузки DOM
-
-
-//экран загрузки
-document.addEventListener('DOMContentLoaded', async () => {
-  const loadingScreen = document.getElementById('loadingScreen');
-  const app = document.getElementById('app');
-
-  app.style.display = 'none'; // Скрываем основной контент
-
-  try {
-      // Получаем имя пользователя (если нужно)
-      name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
-
-      await showProfile(); // Ждем загрузки данных профиля
-
-      // ... (другие асинхронные операции загрузки данных)
-  } catch (error) {
-      console.error('Ошибка при загрузке данных:', error);
-      alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
-  } finally {
-      loadingScreen.style.display = 'none'; // Скрываем загрузочный экран
-      app.style.display = 'block'; // Показываем основной контент
-  }
-});

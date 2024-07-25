@@ -34,18 +34,33 @@ async function main() {
 
   let userData;
   let isProfileLoaded = false;
-  let isGameInitialized = false; // Флаг для отслеживания инициализации игры
+  let isGameInitialized = false;
 
-  while (!isProfileLoaded || !isGameInitialized) { // Цикл повторяется, пока не загрузится профиль и не инициализируется игра
+  while (!isProfileLoaded || !isGameInitialized) {
     try {
       userData = await getUserData(telegramId);
 
       if (userData) {
         console.log(userData.balance);
 
-        // Выполняем действия, которые должны произойти только один раз после загрузки профиля
+        // Выполняем действия, которые должны произойти только один раз после загрузки
         if (!isProfileLoaded) {
-          showProfile(); // Вызываем функцию для отображения профиля
+          balance = userData.balance || 0;
+          ownedCars = Object.values(userData.inventory);
+          topScore = userData.topScore || 0;
+
+          updateInfoPanels();
+          displayCars();
+
+          const welcomeMessageElement = document.getElementById('welcomeMessage');
+          if (name) {
+            welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
+          } else {
+            welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
+          }
+
+          showProfile(); // Вызываем showProfile после инициализации игры
+
           isProfileLoaded = true;
         }
 

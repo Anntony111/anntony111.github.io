@@ -172,10 +172,6 @@ async function updateUserData(telegramId, updates) {
 }
 
 
-const connectingMessage = document.createElement('p');
-connectingMessage.textContent = 'Соединение с базой данных...';
-document.body.appendChild(connectingMessage); // Добавляем сообщение в DOM
-
 
 
 

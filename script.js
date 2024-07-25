@@ -308,57 +308,61 @@ function moveCar(event) {
 
 
 async function endMove(event) {
-  event.preventDefault();
+  event.preventDefault(); // Предотвращаем стандартное действие браузера при перетаскивании
 
-  if (movingCarElement) {
+  if (movingCarElement) { // Проверяем, что машинка действительно перемещается
+    // Получаем координаты, где отпустили машинку
     const clientX = event.clientX || event.changedTouches[0].clientX;
     const clientY = event.clientY || event.changedTouches[0].clientY;
 
+    // Находим слот, на который отпустили машинку
     const targetSlot = document.elementFromPoint(clientX, clientY).closest('.car-slot');
 
-    if (targetSlot) {
-      const targetIndex = parseInt(targetSlot.dataset.index);
+    if (targetSlot) { // Если машинка была отпущена над слотом
+      const targetIndex = parseInt(targetSlot.dataset.index); // Получаем индекс целевого слота
 
-      if (movingCarIndex !== targetIndex) {
-        const draggedCar = ownedCars[movingCarIndex];
-        const targetCar = ownedCars[targetIndex];
+      if (movingCarIndex !== targetIndex) { // Если индексы слотов не совпадают (машинка перемещена)
+        const draggedCar = ownedCars[movingCarIndex]; // Получаем данные перетаскиваемой машинки
+        const targetCar = ownedCars[targetIndex];   // Получаем данные машинки в целевом слоте
 
-        // Проверка на нулевой уровень
+        // Проверка, что ни одна из машинок не нулевого уровня
         if (draggedCar.level === 0 || targetCar.level === 0) {
-          // Если хотя бы одна машинка нулевого уровня, просто меняем местами
+          // Если хотя бы одна машинка нулевого уровня, просто меняем их местами
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
-        } else if (draggedCar.level === targetCar.level) {
-          // Если уровни совпадают и не равны нулю, объединяем
+        } else if (draggedCar.level === targetCar.level) { // Если уровни совпадают
+          // Объединяем машинки: увеличиваем уровень целевой машинки
           ownedCars[targetIndex].level++;
 
-          // Обновляем данные в Firebase Realtime Database
+          // Обновляем данные в базе данных Firebase
           try {
             const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
             await updateUserData(telegramId, { inventory: ownedCars });
           } catch (error) {
+            // Обработка ошибки при обновлении данных
             console.error('Ошибка при обновлении данных в базе данных:', error);
-            alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
+            alert("Произошла ошибка при сохранении данных. Попробуйте еще раз.");
             // Отменяем перемещение, если обновление не удалось
             [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
-            return; 
+            return; // Прерываем выполнение функции
           }
 
-          // Очищаем исходный слот
-          ownedCars[movingCarIndex] = { level: 0, name: `Car ${movingCarIndex + 1}` };
+          // Очищаем исходный слот, откуда перетащили машинку (теперь он пустой)
+          ownedCars[movingCarIndex] = null; 
         } 
       }
     }
 
-    // Сбрасываем стили и переменные
+    // Сбрасываем стили и переменные, чтобы машинка вернулась на место и больше не перемещалась
     movingCarElement.style.transform = '';
     movingCarElement.classList.remove('dragging');
     movingCarIndex = null;
     movingCarElement = null;
 
-    displayCars(); // Обновляем отображение инвентаря
-    updateEarnRate();
+    displayCars(); // Обновляем отображение машинок в инвентаре
+    updateEarnRate(); // Обновляем скорость заработка
   }
 }
+
 
 
 

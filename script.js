@@ -199,6 +199,7 @@ let earnRate = 0;
 let topScore = 0;
 let carRef = null;  // Объявляем carRef глобально
 let carTop = null
+let telegramId
 
 // Функция для получения изображения машинки по уровню
 // Функция для получения изображения машинки по уровню
@@ -442,14 +443,11 @@ function updateInfoPanels() {
   document.getElementById("topScore").textContent = topScore;
 }
 
-// Обработчики событий для кнопок (пример)
-document.getElementById("shopButton").addEventListener("click", () => {
-  // ... (логика открытия магазина)
-});
+
 
 
 // Функция для отображения магазина
-function displayShop() {
+function displayShop(telegramId) { 
   const shop = document.getElementById("shop");
   shop.innerHTML = `
     <div class="shop-header">
@@ -485,20 +483,21 @@ function displayShop() {
       buyButton.dataset.carIndex = index;
       buyButton.textContent = "Купить";
 
+    
       // Обработчик события для кнопки "Купить"
-      buyButton.addEventListener("click", async () => {
-        if (balance >= car.price) {
-          balance -= car.price;
+    buyButton.addEventListener("click", async () => {
+      if (balance >= car.price) {
+        balance -= car.price;
 
+        const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
+
+        if (emptySlotIndex !== -1) {
           ownedCars[emptySlotIndex] = { ...car };
-
-          // Создаем копию ownedCars перед обновлением
-          const updatedOwnedCars = [...ownedCars];
 
           try {
             await updateUserData(telegramId, {
               balance,
-              inventory: updatedOwnedCars,
+              inventory: ownedCars,
               topScore
             });
 
@@ -509,14 +508,17 @@ function displayShop() {
             console.error("Ошибка при обновлении данных в базе данных:", error);
             alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
 
-            // Восстанавливаем баланс, если обновление не удалось
+            // Возвращаем баланс и слот, если обновление не удалось
             balance += car.price;
-            ownedCars[emptySlotIndex] = { level: 0, name: `Car ${emptySlotIndex + 1}` }; // Восстанавливаем пустой слот
+            ownedCars[emptySlotIndex] = null; 
           }
         } else {
-          alert("Недостаточно средств!");
+          alert("Превышен лимит гаража!");
         }
-      });
+      } else {
+        alert("Недостаточно средств!");
+      }
+    }); 
 
       carInfo.appendChild(buyButton);
     } else {
@@ -542,9 +544,12 @@ function displayShop() {
 
 // Обработчик события для кнопки "Магазин"
 document.getElementById("shopButton").addEventListener("click", () => {
-  displayShop();
-  document.getElementById("shop").style.display = "flex"; // Показываем магазин
+  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id; // Получаем telegramId внутри обработчика
+  displayShop(telegramId); // Передаем telegramId в displayShop
+  document.getElementById("shop").style.display = "flex";
 });
+
+
 
 // Обработчик события для закрытия магазина
 document.getElementById("shop").addEventListener("click", (event) => {

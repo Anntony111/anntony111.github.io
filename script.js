@@ -490,11 +490,9 @@ if (emptySlotIndex !== -1) {
       const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
 
       if (emptySlotIndex !== -1) {
-        try {
-          // Уменьшаем баланс и обновляем данные в базе данных только один раз
-          balance -= car.price;
-          ownedCars[emptySlotIndex] = { ...car };  
+        ownedCars[emptySlotIndex] = { ...car }; 
 
+        try {
           await updateUserData(telegramId, {
             balance,
             inventory: ownedCars,
@@ -508,10 +506,13 @@ if (emptySlotIndex !== -1) {
           console.error("Ошибка при обновлении данных в базе данных:", error);
           alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
 
-          // Возвращаем баланс и слот, если обновление не удалось
-          balance += car.price; 
+          // Возвращаем машинку в магазин, если обновление не удалось
           ownedCars[emptySlotIndex] = null; 
         }
+
+        // Уменьшаем баланс только после успешного обновления данных
+        balance -= car.price;
+        updateInfoPanels(); // Обновляем отображение баланса
       } else {
         alert("Превышен лимит гаража!");
       }

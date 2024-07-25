@@ -105,10 +105,10 @@ async function updateUserData(telegramId, updates) {
     await update(userRef, updates);
   } catch (error) {
     console.error('Error updating user data:', error);
+    alert('Произошла ошибка при обновлении данных пользователя. Код ошибки:', error.code);
     throw error; 
   }
 }
-
 
 const connectingMessage = document.createElement('p');
 connectingMessage.textContent = 'Соединение с базой данных...';

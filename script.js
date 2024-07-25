@@ -29,58 +29,94 @@ const dbRef = database.ref();
 
 async function main() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || '1';
-  const userData = await getUserData(telegramId);
+  const username = Telegram.WebApp.initDataUnsafe?.user?.username;
+  const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
 
-  if (userData) {
-    // Пользователь найден, используем его данные
-    console.log(userData.balance); // Пример использования данных
-    // ...
-  } else {
-    // Пользователь не найден, создаем новый профиль
-    // ...
+  let userData;
+  let isProfileLoaded = false;
+
+  while (!isProfileLoaded) {
+    try {
+      userData = await getUserData(telegramId);
+
+      if (userData) {
+        console.log(userData.balance);
+        // ... (остальная логика вашего приложения)
+
+        // Выполняем действия, которые должны произойти только один раз после загрузки
+        if (!isProfileLoaded) {
+          balance = userData.balance || 0;
+          ownedCars = Object.values(userData.inventory);
+          topScore = userData.topScore || 0;
+
+          updateInfoPanels();
+          displayCars();
+
+          const welcomeMessageElement = document.getElementById('welcomeMessage');
+          if (name) {
+            welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
+          } else {
+            welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
+          }
+
+          isProfileLoaded = true;
+        }
+      } else {
+        console.log("User not found, creating default profile...");
+        const newUserData = {
+          telegram_id: telegramId,
+          username: username,
+          name: name,
+          balance: 0,
+          inventory: {},
+          topScore: 0,
+          created_at: new Date().toISOString()
+        };
+
+        for (let i = 0; i < 12; i++) {
+          newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+        }
+
+        await updateUserData(telegramId, newUserData);
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке данных пользователя:', error);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
   }
 }
 
 main(); // Вызываем функцию main() для запуска приложения
 
-fetch('/get_user_data')
-  .then(response => response.json())
-  .then(data => {
-    if (data) { // Проверяем, что данные есть
-      // ... (обновляем элементы страницы)
-    } else {
-      console.warn('Данные не получены.');
-    }
-  })
-  .catch(error => {
-    console.error('Ошибка при получении данных пользователя:', error);
-  });
 
+
+// Получение данных пользователя
 async function getUserData(telegramId) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
     const snapshot = await userRef.once('value');
+
     if (snapshot.exists()) {
       const userData = snapshot.val();
 
-      // Проверяем и корректируем inventory
-      if (!userData.inventory || typeof userData.inventory !== 'object') {
-        userData.inventory = [];
+      // Проверяем и корректируем inventory, если нужно
+      if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
+        userData.inventory = {};
         for (let i = 0; i < 12; i++) {
           userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
         }
-        await userRef.child('inventory').set(userData.inventory);
+
+        // Сохраняем обновленный inventory в базу данных
+        await userRef.update({ inventory: userData.inventory });
       }
 
-      // Проверяем и корректируем остальные поля
-      const defaultFields = ['balance', 'topScore', 'name', 'username', 'telegram_id'];
-      for (const field of defaultFields) {
-        if (field === 'name' || field === 'username') { // Преобразуем только name и username
-          userData[field] = userData[field].toString();
-        } else {
-          userData[field] = userData[field] || 0; // Или "" для строковых полей
-        }
-      }
+      // Проверяем и корректируем остальные поля (balance, topScore и т.д.)
+      userData.balance = userData.balance || 0;
+      userData.topScore = userData.topScore || 0;
+      userData.name = userData.name || "";
+      userData.username = userData.username || "";
+      userData.telegram_id = userData.telegram_id || "";
 
       console.log("Fetched user data:", userData);
       return userData;
@@ -99,14 +135,18 @@ async function getUserData(telegramId) {
 
 
 
+// Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
+
     // Обновляем инвентарь
     if (updates.inventory) {
-      await userRef.child('inventory').set(updates.inventory);
-      delete updates.inventory;
+      const inventoryRef = userRef.child('inventory');
+      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
+      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
+
     // Обновляем остальные поля
     await userRef.update(updates);
   } catch (error) {
@@ -121,56 +161,6 @@ connectingMessage.textContent = 'Соединение с базой данных
 document.body.appendChild(connectingMessage); // Добавляем сообщение в DOM
 
 
-(async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  let telegramId = urlParams.get('telegramId') || Telegram.WebApp.initDataUnsafe?.user?.id || '1';
-
-  const username = Telegram.WebApp.initDataUnsafe?.user?.username;
-  const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
-
-  try {
-    let userData = await getUserData(telegramId);
-
-    if (!userData) {
-      console.log('User not found, creating default profile...');
-      const newUserData = {
-        telegram_id: telegramId,
-        username: username,
-        name: name,
-        balance: 0,
-        inventory: {}, // Создаем пустой объект inventory
-        topScore: 0,
-        created_at: new Date().toISOString()
-      };
-
-      // Заполняем inventory машинами по умолчанию
-      for (let i = 0; i < 12; i++) {
-        newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
-      }
-
-      await updateUserData(telegramId, newUserData);
-      userData = await getUserData(telegramId); // Получаем обновленные данные
-      console.log('Default profile created:', userData);
-    }
-
-    balance = userData.balance || 0;
-    ownedCars = Object.values(userData.inventory); // Преобразуем inventory в массив
-    topScore = userData.topScore || 0;
-
-    updateInfoPanels();
-    displayCars();
-
-    const welcomeMessageElement = document.getElementById('welcomeMessage');
-    if (name) {
-      welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
-    } else {
-      welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
-    }
-  } catch (error) {
-    console.error('Ошибка при загрузке данных пользователя:', error);
-    alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
-  }
-})();
 
 
 
@@ -217,27 +207,23 @@ function getCarImageByLevel(level) {
 
 function displayCars() {
   const inventory = document.getElementById("inventory");
-  inventory.innerHTML = ""; // Очищаем инвентарь
-
+  inventory.innerHTML = "";
   for (let index = 0; index < ownedCars.length; index++) {
     const carSlot = document.createElement("div");
     carSlot.classList.add("car-slot");
     carSlot.draggable = true;
     carSlot.dataset.index = index;
-
     // Проверка уровня: если уровень 0, то слот пустой
     if (ownedCars[index] && ownedCars[index].level > 0) {
       const carImage = document.createElement("img");
       carImage.src = getCarImageByLevel(ownedCars[index].level);
       carImage.alt = ownedCars[index].name;
       carSlot.appendChild(carImage);
-
       const carLevel = document.createElement("div");
       carLevel.classList.add("car-level");
       carLevel.textContent = `Lvl ${ownedCars[index].level}`;
       carSlot.appendChild(carLevel);
     }
-
     // Добавляем обработчики событий drag-and-drop (как и раньше)
     carSlot.addEventListener("mousedown", startMove);
     carSlot.addEventListener("mousemove", moveCar);
@@ -245,8 +231,7 @@ function displayCars() {
     carSlot.addEventListener("touchstart", startMove);
     carSlot.addEventListener("touchmove", moveCar);
     carSlot.addEventListener("touchend", endMove);
-
-    inventory.appendChild(carSlot); // Добавляем слот в инвентарь
+    inventory.appendChild(carSlot);
   }
 }
 
@@ -599,36 +584,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-let cloud; // Объявляем переменную cloud глобально
-
+let cloud; // Declare the cloud variable globally
 document.addEventListener('DOMContentLoaded', () => {
-  const cloud = document.getElementById('cloud');
-  let posX = 0;
-  let posY = 0;
-  let directionX = 1;
-  let directionY = 1;
-
-  function animateCloud() {
-    posX += directionX * 0.5;
-    posY += directionY * 0.2;
-
-    if (posX > window.innerWidth - cloud.offsetWidth || posX < 0) {
-      directionX *= -1;
+  let clouds = document.querySelectorAll('.cloud');
+  clouds.forEach(cloud => {
+    let posX = 0;
+    let posY = 0;
+    let directionX = 1;
+    let directionY = 1;
+    function animateCloud() {
+      posX += directionX * 0.5;
+      posY += directionY * 0.2;
+      if (posX > window.innerWidth - cloud.offsetWidth || posX < 0) {
+        directionX *= -1;
+      }
+      if (posY > window.innerHeight - cloud.offsetHeight || posY < 0) {
+        directionY *= -1;
+      }
+      cloud.style.transform = `translate(${posX}px, ${posY}px)`;
+      requestAnimationFrame(animateCloud);
     }
-    if (posY > window.innerHeight - cloud.offsetHeight || posY < 0) {
-      directionY *= -1;
-    }
-
-    cloud.style.transform = `translate(${posX}px, ${posY}px)`;
-    cloud = document.getElementById('cloud');
-    requestAnimationFrame(animateCloud);
-    const cloud = document.getElementById('cloud');
-
-  }
-
-  animateCloud();
+    animateCloud();
+  });
 });
-
 window.addEventListener('load', () => {
   // ... (запуск музыки)
 
@@ -679,28 +657,37 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 
 async function showProfile() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  const profileMenu = document.getElementById('profileMenu'); // Получаем элемент profileMenu
+  const profileMenu = document.getElementById('profileMenu');
 
-  try {
-    const userData = await getUserData(telegramId);
+  let isProfileLoaded = false;
 
-    if (userData && profileMenu) { // Проверяем, что userData и profileMenu не null
-      document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
-      document.getElementById('profileBalance').textContent = userData.balance;
-      document.getElementById('profileCarRef').textContent = userData.car_ref;
-      document.getElementById('profileCarTop').textContent = userData.car_top;
-      // Заполняем остальные поля профиля данными из userData
+  while (!isProfileLoaded) {
+    try {
+      const userData = await getUserData(telegramId);
 
-      profileMenu.style.display = 'block'; // Показываем меню профиля
-    } else {
-      // Обработка ситуации, когда данные пользователя не найдены в базе данных
-      console.error('Данные пользователя или profileMenu не найдены.');
-      // Можно добавить вывод сообщения пользователю или другие действия
+      if (userData && profileMenu) {
+        document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
+        document.getElementById('profileBalance').textContent = userData.balance;
+        document.getElementById('profileCarRef').textContent = userData.car_ref || "Не указано"; // Если car_ref нет, выводим "Не указано"
+        document.getElementById('profileCarTop').textContent = userData.car_top || "Не указано"; // Если car_top нет, выводим "Не указано"
+
+        // Заполняем остальные поля профиля данными из userData (если есть)
+        // ...
+
+        profileMenu.style.display = 'block';
+        isProfileLoaded = true;
+      } else {
+        console.error('Данные пользователя или profileMenu не найдены.');
+      }
+    } catch (error) {
+      console.error('Ошибка при получении данных пользователя:', error);
+      // Не показываем alert, просто ждем и повторяем попытку
     }
-  } catch (error) {
-    console.error('Ошибка при получении данных пользователя:', error);
-    alert("Произошла ошибка при загрузке профиля. Пожалуйста, попробуйте еще раз.");
+
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
   }
+
+  // Вывод приветственного сообщения (только один раз)
   const welcomeMessageElement = document.getElementById('welcomeMessage');
   if (name) {
     welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
@@ -708,6 +695,7 @@ async function showProfile() {
     welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
   }
 }
+
 
 
 

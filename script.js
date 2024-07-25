@@ -319,9 +319,10 @@ async function endMove(event) {
         const draggedCar = ownedCars[movingCarIndex];
         const targetCar = ownedCars[targetIndex];
 
-        if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
+        // Проверяем, что уровни машинок больше 0
+        if (targetCar && draggedCar && draggedCar.level > 0 && targetCar.level > 0 && draggedCar.level === targetCar.level) {
           ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
-          ownedCars[movingCarIndex] = null; // Очищаем исходный слот
+          ownedCars[movingCarIndex] = { level: 0, name: `Car ${movingCarIndex + 1}` }; 
         } else {
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
         }

@@ -735,3 +735,27 @@ document.getElementById('shopButton').addEventListener('click', () => {
 });
 
 document.addEventListener('DOMContentLoaded', showProfile); // Вызываем showProfile после загрузки DOM
+
+
+//экран загрузки
+document.addEventListener('DOMContentLoaded', async () => {
+  const loadingScreen = document.getElementById('loadingScreen');
+  const app = document.getElementById('app');
+
+  app.style.display = 'none'; // Скрываем основной контент
+
+  try {
+      // Получаем имя пользователя (если нужно)
+      name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
+
+      await showProfile(); // Ждем загрузки данных профиля
+
+      // ... (другие асинхронные операции загрузки данных)
+  } catch (error) {
+      console.error('Ошибка при загрузке данных:', error);
+      alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
+  } finally {
+      loadingScreen.style.display = 'none'; // Скрываем загрузочный экран
+      app.style.display = 'block'; // Показываем основной контент
+  }
+});

@@ -1,0 +1,26 @@
+{
+      "telegramUserId1": {
+        "telegram_id": "telegramUserId",
+        "username": "username",
+        "name": "Имя Фамилия",
+        "balance": 0,
+        "CarRef": 0,
+        "CarTop": 0,
+        "topScore": 0,
+        "created_at": "2024-07-25T00:32:00.000Z",
+        "inventory": [
+          {"name": "Car 1", "level": 0},
+          {"name": "Car 2", "level": 0},
+          {"name": "Car 3", "level": 0},
+          {"name": "Car 4", "level": 0},
+          {"name": "Car 5", "level": 0},
+          {"name": "Car 6", "level": 0},
+          {"name": "Car 7", "level": 0},
+          {"name": "Car 8", "level": 0},
+          {"name": "Car 9", "level": 0},
+          {"name": "Car 10", "level": 0},
+          {"name": "Car 11", "level": 0},
+          {"name": "Car 12", "level": 0}
+        ]
+      }
+    }

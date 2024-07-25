@@ -179,7 +179,7 @@
 
 
 
-  import cars from './car.js'; // Импортируем данные о машинах
+  import cars from './cars.js'; // Импортируем данные о машинах
  
 
   

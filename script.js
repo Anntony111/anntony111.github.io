@@ -48,22 +48,29 @@ main(); // Вызываем функцию main() для запуска прил
 // Получение данных пользователя
 async function getUserData(telegramId) {
   try {
+    // Получаем ссылку на данные пользователя в базе данных Firebase
     const userRef = dbRef.child(`users/${telegramId}`);
+
+    // Асинхронно получаем данные пользователя один раз
     const snapshot = await userRef.once('value');
 
+    // Проверяем, существует ли пользователь в базе данных
     if (snapshot.exists()) {
-      const userData = snapshot.val();
+      const userData = snapshot.val(); // Получаем данные пользователя
 
       // Проверяем и корректируем inventory, если нужно
       if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
-        userData.inventory = {};
+        userData.inventory = {}; // Создаем пустой объект inventory, если он не существует или некорректен
         for (let i = 0; i < 12; i++) {
-          userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+          userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` }; // Заполняем inventory машинами по умолчанию
         }
 
         // Сохраняем обновленный inventory в базу данных
         await userRef.update({ inventory: userData.inventory });
       }
+
+      // Проверяем и корректируем earnRate
+      userData.earnRate = userData.earnRate || calculateEarnRate(userData.inventory);
 
       // Проверяем и корректируем остальные поля (balance, topScore и т.д.)
       userData.balance = userData.balance || 0;
@@ -72,16 +79,21 @@ async function getUserData(telegramId) {
       userData.username = userData.username || "";
       userData.telegram_id = userData.telegram_id || "";
 
-      console.log("Fetched user data:", userData);
-      return userData;
+      console.log("Получены данные пользователя:", userData);
+      return userData; // Возвращаем данные пользователя
     } else {
-      console.log("User not found");
-      return null;
+      console.log("Пользователь не найден");
+      return null; // Возвращаем null, если пользователь не найден
     }
   } catch (error) {
     console.error('Ошибка при загрузке данных пользователя:', error);
-    throw error;
+    throw error; // Пробрасываем ошибку дальше для обработки
   }
+}
+
+// Function to calculate earnRate based on inventory (unchanged)
+function calculateEarnRate(inventory) {
+  return Object.values(inventory).reduce((sum, car) => sum + (car ? car.level : 0), 0);
 }
 
 
@@ -92,22 +104,29 @@ async function getUserData(telegramId) {
 // Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
+    // Получаем ссылку на данные пользователя в базе данных Firebase
     const userRef = dbRef.child(`users/${telegramId}`);
 
-    // Обновляем инвентарь
+    // Обновляем инвентарь, если он есть в updates
     if (updates.inventory) {
-      const inventoryRef = userRef.child('inventory');
-      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
-      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
+      const inventoryRef = userRef.child('inventory'); // Получаем ссылку на узел inventory
+      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory новыми данными
+      delete updates.inventory; // Удаляем inventory из общего объекта обновлений, чтобы не обновлять его дважды
     }
 
-    // Обновляем остальные поля
-    await userRef.update(updates);
+    // Пересчитываем и обновляем earnRate, если инвентарь обновляется
+    if (updates.inventory) {
+      updates.earnRate = calculateEarnRate(updates.inventory);
+    }
+
+    // Обновляем остальные поля пользователя
+    await userRef.update(updates); // Обновляем данные пользователя в базе данных
   } catch (error) {
-    console.error('Error updating user data:', error);
-    throw error;
+    console.error('Ошибка при обновлении данных пользователя:', error);
+    throw error; // Пробрасываем ошибку дальше для обработки
   }
 }
+
 
 
 const connectingMessage = document.createElement('p');
@@ -366,57 +385,25 @@ async function endMove(event) {
 
 
 // Функция для обновления скорости заработка
-async function updateEarnRate() {
-  earnRate = ownedCars.reduce((sum, car) => sum + (car ? car.level : 0), 0);
-  document.getElementById("earnRate").textContent = `${earnRate}/мин`;
-
-  // Сохраняем earnRate в базу данных
-  try {
-    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-    await updateUserData(telegramId, { earnRate }); 
-  } catch (error) {
-    console.error('Ошибка при сохранении скорости заработка:', error);
-  }
+function updateEarnRate() {
+  earnRate = ownedCars.reduce((sum, car) => sum + (car ? car.level : 0), 0); // Суммируем уровни всех машинок, учитывая null значения
+  document.getElementById("earnRate").textContent = `${userData.earnRate}/мин`;
 }
 
-async function earnCoins() {
+function earnCoins() {
+  balance += earnRate;
+  updateInfoPanels();
+
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
-  try {
-    const userData = await getUserData(telegramId);
+  // Создаем копию массива ownedCars перед обновлением
+  const updatedOwnedCars = [...ownedCars];
 
-    if (userData) {
-      const lastEarnTime = userData.lastEarnTime || new Date().getTime();
-      const currentTime = new Date().getTime();
-      const timePassedMinutes = Math.floor((currentTime - lastEarnTime) / 60000);
-
-      // Обновляем баланс, учитывая earnRate и прошедшее время
-      balance = userData.balance + timePassedMinutes * userData.earnRate;
-
-      // Обновляем данные в базе данных
-      await updateUserData(telegramId, {
-        balance,
-        lastEarnTime: currentTime,
-        inventory: ownedCars,
-        topScore
-      });
-
-      updateInfoPanels();
-    }
-  } catch (error) {
-    console.error('Ошибка при обновлении баланса:', error);
-  }
+  updateUserData(telegramId, { balance, inventory: updatedOwnedCars, topScore }); // Передаем копию массива ownedCars
 }
 
-// Вызываем earnCoins при старте, чтобы рассчитать заработок, накопленный за время отсутствия
-earnCoins();
 
-// Обновляем баланс каждую минуту
-setInterval(earnCoins, 60 * 1000); // 60 секунд * 1000 миллисекунд = 1 минута
-
-
-
-
+setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
 
 
 
@@ -477,7 +464,7 @@ function animateCars() {
 // Функция для обновления значений в табличках
 function updateInfoPanels() {
   document.getElementById("balance").textContent = balance;
-  document.getElementById("earnRate").textContent = `${earnRate}/мин`;
+  document.getElementById("earnRate").textContent = `${userData.earnRate}/мин`;
   document.getElementById("topScore").textContent = topScore;
 }
 

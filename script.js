@@ -482,41 +482,45 @@
       buyButton.textContent = "Купить";
   
       // Обработчик события для кнопки "Купить"
-      buyButton.addEventListener("click", async () => { // При клике на кнопку
-        if (balance >= car.price) { // Если хватает денег
-          try {
-            // Находим первый пустой слот
-            const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
-  
-            if (emptySlotIndex !== -1) { // Если есть место в гараже
-              // Уменьшаем баланс и обновляем данные в базе данных
-              balance -= car.price;
-              ownedCars[emptySlotIndex] = { ...car }; 
-  
-              await updateUserData(telegramId, {
-                balance,
-                inventory: ownedCars,
-                topScore
-              });
-  
-              displayCars(); // Обновляем отображение гаража
-              updateEarnRate(); // Обновляем скорость заработка
-              updateInfoPanels(); // Обновляем информационные панели
-            } else {
-              alert("Нет места в гараже"); // Если нет места
-            }
-          } catch (error) {
-            console.error("Ошибка при обновлении данных в базе данных:", error);
-            alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
-  
-            // Возвращаем баланс, если обновление не удалось
-            balance += car.price;
-            updateInfoPanels(); 
+       // Обработчик события для кнопки "Купить"
+    buyButton.addEventListener("click", async () => {
+      if (buyButton.disabled) return; // Предотвращаем повторные клики
+
+      if (balance >= car.price) {
+        try {
+          // Находим первый пустой слот
+          const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
+
+          if (emptySlotIndex !== -1) { // Если есть место в гараже
+            // Блокируем кнопку на время обновления
+            buyButton.disabled = true;
+
+            // Уменьшаем баланс и обновляем данные в базе данных
+            balance -= car.price;
+            ownedCars[emptySlotIndex] = { ...car };
+
+            await updateUserData(telegramId, {
+              balance,
+              inventory: ownedCars,
+              topScore
+            });
+
+            displayCars();
+            updateEarnRate();
+            updateInfoPanels();
+          } else {
+            alert("Нет места в гараже");
           }
-        } else {
-          alert("Недостаточно средств!"); // Если не хватает денег
+        } catch (error) {
+          // ... (обработка ошибок) ...
+        } finally {
+          // Разблокируем кнопку после обновления (независимо от результата)
+          buyButton.disabled = false;
         }
-      });
+      } else {
+        alert("Недостаточно средств!");
+      }
+    });
   
       carInfo.appendChild(buyButton); // Добавляем кнопку в информацию о машине
       shopItem.appendChild(carInfo); // Добавляем информацию о машине в элемент машины

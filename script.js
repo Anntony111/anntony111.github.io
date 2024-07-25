@@ -58,7 +58,7 @@ async function getUserData(telegramId) {
       if (!userData.inventory || typeof userData.inventory !== 'object' || Object.keys(userData.inventory).length !== 12) {
         userData.inventory = {};
         for (let i = 0; i < 12; i++) {
-          userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+          userData.inventory[i.toString()] = { level: null, name: `Car ${i + 1}` }; // Устанавливаем level как null для пустых слотов
         }
 
         // Сохраняем обновленный inventory в базу данных
@@ -208,9 +208,8 @@ let carRef = null;  // Объявляем carRef глобально
 let carTop = null
 
 // Функция для получения изображения машинки по уровню
-// Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
-  if (level === 0 || level > cars.length) {
+  if (level === null || level > cars.length) {
     return null; // Возвращаем null, если слот пустой или уровень машинки не найден
   } else {
     return cars[level - 1].image;
@@ -224,29 +223,29 @@ function displayCars() {
   inventory.innerHTML = ""; // Очищаем инвентарь перед обновлением
 
   for (let i = 0; i < 12; i++) {
-    const carSlot = document.createElement("div"); 
+    const carSlot = document.createElement("div");
     carSlot.classList.add("car-slot");  // Добавляем класс для стилизации слота
     carSlot.draggable = true;           // Делаем слот перетаскиваемым
     carSlot.dataset.index = i;          // Запоминаем индекс слота в дата-атрибуте
 
     const car = ownedCars[i];
 
-    if (car && car.level > 0) { // Если в слоте есть машинка
+    if (car && car.level > 0) { // Отображаем только если уровень больше 0
       // Добавляем изображение машинки
       const carImage = document.createElement("img");
-      carImage.src = getCarImageByLevel(car.level); 
-      carImage.alt = car.name; 
+      carImage.src = getCarImageByLevel(car.level);
+      carImage.alt = car.name;
       carSlot.appendChild(carImage);
 
       // Добавляем отображение уровня машинки
       const carLevel = document.createElement("div");
-      carLevel.classList.add("car-level"); 
+      carLevel.classList.add("car-level");
       carLevel.textContent = `Lvl ${car.level}`;
       carSlot.appendChild(carLevel);
     }
 
     // Добавляем обработчики событий для перетаскивания (drag-and-drop)
-    carSlot.addEventListener("mousedown", startMove);     
+    carSlot.addEventListener("mousedown", startMove);
     carSlot.addEventListener("mousemove", moveCar);
     carSlot.addEventListener("mouseup", endMove);
     // Обработчики для сенсорных устройств (touch events)
@@ -257,6 +256,7 @@ function displayCars() {
     inventory.appendChild(carSlot); // Добавляем слот в инвентарь
   }
 }
+
 
 
 let movingCarIndex = null;
@@ -410,7 +410,7 @@ document.getElementById("shop").addEventListener("click", async (event) => {
     if (balance >= car.price) {
       balance -= car.price;
 
-      const emptySlotIndex = Object.keys(ownedCars).find(index => !ownedCars[index] || ownedCars[index].level === 0); // Находим пустой слот
+      const emptySlotIndex = Object.keys(ownedCars).find(index => !ownedCars[index] || ownedCars[index].level === null); // Находим пустой слот
 
       if (emptySlotIndex !== undefined) {
         ownedCars[emptySlotIndex] = { ...car };
@@ -418,8 +418,7 @@ document.getElementById("shop").addEventListener("click", async (event) => {
         try {
           await updateUserData(telegramId, { 
             balance, 
-            inventory: ownedCars,  // Передаем массив ownedCars напрямую
-            topScore
+            inventory: ownedCars
           });
 
           displayCars();
@@ -431,7 +430,7 @@ document.getElementById("shop").addEventListener("click", async (event) => {
 
           // Восстанавливаем баланс и слот инвентаря, если обновление не удалось
           balance += car.price;
-          ownedCars[emptySlotIndex] = { level: 0, name: `Car ${parseInt(emptySlotIndex) + 1}` };
+          ownedCars[emptySlotIndex] = { level: null, name: `Car ${parseInt(emptySlotIndex) + 1}` };
         }
       } else {
         alert("Превышен лимит гаража!");
@@ -443,6 +442,7 @@ document.getElementById("shop").addEventListener("click", async (event) => {
     document.getElementById("shop").style.display = "none";
   }
 });
+
 
 
 

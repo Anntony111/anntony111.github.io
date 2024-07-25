@@ -65,12 +65,16 @@ async function getUserData(telegramId) {
         await userRef.update({ inventory: userData.inventory });
       }
 
-      // Проверяем и корректируем остальные поля (balance, topScore и т.д.)
+      // Проверяем и корректируем остальные поля (balance, topScore, earnRate и т.д.)
       userData.balance = userData.balance || 0;
       userData.topScore = userData.topScore || 0;
       userData.name = userData.name || "";
       userData.username = userData.username || "";
       userData.telegram_id = userData.telegram_id || "";
+      userData.earnRate = userData.earnRate || 0; // Загружаем earnRate
+
+      // Обновляем глобальную переменную earnRate
+      earnRate = userData.earnRate;
 
       console.log("Fetched user data:", userData);
       return userData;
@@ -83,6 +87,7 @@ async function getUserData(telegramId) {
     throw error;
   }
 }
+
 
 
 

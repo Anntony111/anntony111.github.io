@@ -657,6 +657,8 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 
 async function showProfile() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  const username = Telegram.WebApp.initDataUnsafe?.user?.username || "Не указано"; // Если username нет, выводим "Не указано"
+  const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
   const profileMenu = document.getElementById('profileMenu');
 
   let isProfileLoaded = false;
@@ -666,23 +668,36 @@ async function showProfile() {
       const userData = await getUserData(telegramId);
 
       if (userData && profileMenu) {
-        document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
-        document.getElementById('profileBalance').textContent = userData.balance;
-        document.getElementById('profileCarRef').textContent = userData.car_ref || "Не указано";
-        document.getElementById('profileCarTop').textContent = userData.car_top || "Не указано";
-        profileMenu.style.display = 'block'; 
+        // Проверяем наличие всех необходимых полей
+        if (
+          userData.hasOwnProperty('balance') &&
+          userData.hasOwnProperty('car_ref') &&
+          userData.hasOwnProperty('car_top')
+        ) {
+          document.getElementById('profileName').textContent = name;
+          document.getElementById('profileTelegramId').textContent = telegramId;
+          document.getElementById('profileUsername').textContent = username;
+          document.getElementById('profileBalance').textContent = userData.balance;
+          document.getElementById('profileCarRef').textContent = userData.car_ref || "Не указано";
+          document.getElementById('profileCarTop').textContent = userData.car_top || "Не указано";
+
+          profileMenu.style.display = 'block';
+          isProfileLoaded = true;
+        } else {
+          console.error('Не все данные пользователя найдены.');
+          // Здесь можно добавить логику для обработки ситуации, когда данные неполные
+        }
       } else {
         console.error('Данные пользователя или profileMenu не найдены.');
       }
-
-      isProfileLoaded = true; // Устанавливаем флаг после каждой успешной загрузки 
     } catch (error) {
       console.error('Ошибка при получении данных пользователя:', error);
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000)); 
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
   }
 
+  // Вывод приветственного сообщения (только один раз)
   const welcomeMessageElement = document.getElementById('welcomeMessage');
   if (name) {
     welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
@@ -690,6 +705,7 @@ async function showProfile() {
     welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
   }
 }
+
 
 
 

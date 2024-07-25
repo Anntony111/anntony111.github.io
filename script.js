@@ -743,8 +743,7 @@ function displayShop(telegramId) {
   console.log(document.getElementById('inventory')); // Должен вывести элемент инвентаря или null
   console.log(document.getElementById('shop'));
 
-  document.getElementById('shopButton').addEventListener('click', () => {
-    console.log('Shop button clicked'); // Должен вывести сообщение при клике
-  });
+  
+  
 
 

@@ -251,7 +251,14 @@ function displayCars() {
       carSlot.draggable = false; 
     }
 
-    // ... (обработчики событий для перетаскивания)
+      // Добавляем обработчики событий для перетаскивания (drag-and-drop)
+      carSlot.addEventListener("mousedown", startMove);     
+      carSlot.addEventListener("mousemove", moveCar);
+      carSlot.addEventListener("mouseup", endMove);
+      // Обработчики для сенсорных устройств (touch events)
+      carSlot.addEventListener("touchstart", startMove);
+      carSlot.addEventListener("touchmove", moveCar);
+      carSlot.addEventListener("touchend", endMove);
 
     inventory.appendChild(carSlot);
   });

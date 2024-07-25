@@ -198,52 +198,65 @@ let carRef = null;  // Объявляем carRef глобально
 let carTop = null
 
 // Функция для получения изображения машинки по уровню
-// Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
-  if (level === 0 || level > cars.length) {
-    return null; // Возвращаем null, если слот пустой или уровень машинки не найден
-  } else {
+  if (level > 0 && level <= cars.length) { // Добавляем проверку level > 0
     return cars[level - 1].image;
+  } else {
+    return null; // Возвращаем null, если слот пустой или уровень не найден
   }
 }
 
 
 function displayCars() {
   const inventory = document.getElementById("inventory");
-  inventory.innerHTML = ""; // Очищаем инвентарь перед обновлением
+  inventory.innerHTML = ""; // Очищаем инвентарь
 
   ownedCars.forEach((car, index) => {
-    const carSlot = document.createElement("div"); 
-    carSlot.classList.add("car-slot");  // Добавляем класс для стилизации слота
-    carSlot.draggable = true;           // Делаем слот перетаскиваемым
-    carSlot.dataset.index = index;      // Запоминаем индекс слота в дата-атрибуте
+    const carSlot = document.createElement("div");
+    carSlot.classList.add("car-slot");
+    carSlot.draggable = true;
+    carSlot.dataset.index = index;
 
-    if (car) { // Если в слоте есть машинка
+    if (car && car.level > 0) {
       // Добавляем изображение машинки
       const carImage = document.createElement("img");
-      carImage.src = getCarImageByLevel(car.level); 
-      carImage.alt = car.name; 
+      carImage.src = getCarImageByLevel(car.level);
+      carImage.alt = car.name;
+
+      // Обработка ошибок загрузки изображения
+      carImage.onerror = () => {
+        console.error(`Failed to load image for car ${car.name}`);
+        carImage.src = "default_car_image.png"; // Или другой путь к изображению по умолчанию
+      };
+
       carSlot.appendChild(carImage);
 
       // Добавляем отображение уровня машинки
       const carLevel = document.createElement("div");
-      carLevel.classList.add("car-level"); 
+      carLevel.classList.add("car-level");
       carLevel.textContent = `Lvl ${car.level}`;
       carSlot.appendChild(carLevel);
+
+      // Добавляем информацию о машинке при наведении
+      carSlot.addEventListener("mouseover", () => {
+        carSlot.title = `Название: ${car.name}\nУровень: ${car.level}`;
+      });
+    } else {
+      // Если слот пустой, добавляем текст "Пусто"
+      const emptySlotText = document.createElement("p");
+      emptySlotText.textContent = "Пусто";
+      carSlot.appendChild(emptySlotText);
+
+      // Делаем пустой слот не перетаскиваемым
+      carSlot.draggable = false; 
     }
 
-    // Добавляем обработчики событий для перетаскивания (drag-and-drop)
-    carSlot.addEventListener("mousedown", startMove);     
-    carSlot.addEventListener("mousemove", moveCar);
-    carSlot.addEventListener("mouseup", endMove);
-    // Обработчики для сенсорных устройств (touch events)
-    carSlot.addEventListener("touchstart", startMove);
-    carSlot.addEventListener("touchmove", moveCar);
-    carSlot.addEventListener("touchend", endMove);
+    // ... (обработчики событий для перетаскивания)
 
-    inventory.appendChild(carSlot); // Добавляем слот в инвентарь
+    inventory.appendChild(carSlot);
   });
 }
+
 
 let movingCarIndex = null;
 let movingCarElement = null;
@@ -321,7 +334,8 @@ async function endMove(event) {
         const draggedCar = ownedCars[movingCarIndex];
         const targetCar = ownedCars[targetIndex];
 
-        if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
+        // Проверка, что оба слота не пустые и уровни совпадают
+        if (targetCar && draggedCar && draggedCar.level > 0 && targetCar.level > 0 && draggedCar.level === targetCar.level) {
           ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
           ownedCars[movingCarIndex] = null; // Очищаем исходный слот
         } else {
@@ -332,7 +346,13 @@ async function endMove(event) {
         try {
           const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
-          await updateUserData(telegramId, { inventory: ownedCars });
+          // Преобразуем ownedCars в объект для обновления в Firebase
+          const inventoryUpdates = {};
+          for (let i = 0; i < ownedCars.length; i++) {
+            inventoryUpdates[i.toString()] = ownedCars[i];
+          }
+
+          await updateUserData(telegramId, { inventory: inventoryUpdates });
         } catch (error) {
           console.error('Ошибка при обновлении данных в базе данных:', error);
           alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");

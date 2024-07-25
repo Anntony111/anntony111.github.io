@@ -475,51 +475,46 @@
         <p>Цена: ${car.price}</p>
       `;
 
-// Проверяем, есть ли место в инвентаре (ищем слот с level: 0)
-const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
+ // Находим пустой слот для ЭТОЙ конкретной машины
+ const emptySlotIndex = ownedCars.findIndex(
+  (slot, i) => (!slot || slot.level === 0) && i >= index // Начинаем поиск с индекса текущей машины
+);
 
-if (emptySlotIndex !== -1) {
-  const buyButton = document.createElement("button");
-  buyButton.classList.add("buy-button");
-  buyButton.dataset.carIndex = index;
-  buyButton.textContent = "Купить";
+ if (emptySlotIndex !== -1) {
+   const buyButton = document.createElement("button");
+   buyButton.classList.add("buy-button");
+   buyButton.dataset.carIndex = index;
+   buyButton.textContent = "Купить";
 
-  // Обработчик события для кнопки "Купить"
-  buyButton.addEventListener("click", async () => {
-    if (balance >= car.price) {
-      const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
+   // Обработчик события для кнопки "Купить"
+   buyButton.addEventListener("click", async () => {
+     if (balance >= car.price) {
+       try {
+         // Уменьшаем баланс и обновляем данные в базе данных
+         balance -= car.price;
+         ownedCars[emptySlotIndex] = { ...car };
 
-      if (emptySlotIndex !== -1) {
-        ownedCars[emptySlotIndex] = { ...car }; 
+         await updateUserData(telegramId, {
+           balance,
+           inventory: ownedCars,
+           topScore
+         });
 
-        try {
-          await updateUserData(telegramId, {
-            balance,
-            inventory: ownedCars,
-            topScore
-          });
+         displayCars();
+         updateEarnRate();
+         updateInfoPanels();
+       } catch (error) {
+         console.error("Ошибка при обновлении данных в базе данных:", error);
+         alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
 
-          displayCars();
-          updateEarnRate();
-          updateInfoPanels();
-        } catch (error) {
-          console.error("Ошибка при обновлении данных в базе данных:", error);
-          alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
-
-          // Возвращаем машинку в магазин, если обновление не удалось
-          ownedCars[emptySlotIndex] = null; 
-        }
-
-        // Уменьшаем баланс только после успешного обновления данных
-        balance -= car.price;
-        updateInfoPanels(); // Обновляем отображение баланса
-      } else {
-        alert("Превышен лимит гаража!");
-      }
-    } else {
-      alert("Недостаточно средств!");
-    }
-  });
+         // Возвращаем баланс, если обновление не удалось
+         balance += car.price;
+         updateInfoPanels(); // Обновляем отображение баланса
+       }
+     } else {
+       alert("Недостаточно средств!");
+     }
+   });
 
   carInfo.appendChild(buyButton);
 } else {

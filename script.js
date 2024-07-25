@@ -475,16 +475,17 @@ function displayShop(telegramId) {
     `;
 
     // Проверяем, есть ли место в инвентаре (ищем слот с level: 0)
-    const emptySlotIndex = ownedCars.findIndex(slot => slot?.level === 0); // Используем необязательную цепочку
+  const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0); // Используем необязательную цепочку
 
-    if (emptySlotIndex !== -1) {
-      const buyButton = document.createElement("button");
-      buyButton.classList.add("buy-button");
-      buyButton.dataset.carIndex = index;
-      buyButton.textContent = "Купить";
+
+  if (emptySlotIndex !== -1) {
+    const buyButton = document.createElement("button");
+    buyButton.classList.add("buy-button");
+    buyButton.dataset.carIndex = index;
+    buyButton.textContent = "Купить";
 
     
-      // Обработчик события для кнопки "Купить"
+       // Обработчик события для кнопки "Купить"
     buyButton.addEventListener("click", async () => {
       if (balance >= car.price) {
         balance -= car.price;
@@ -492,7 +493,7 @@ function displayShop(telegramId) {
         const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
 
         if (emptySlotIndex !== -1) {
-          ownedCars[emptySlotIndex] = { ...car };
+         
 
           try {
             await updateUserData(telegramId, {

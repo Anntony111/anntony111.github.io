@@ -92,17 +92,17 @@ async function getUserData(telegramId) {
 // Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
-    const userRef = dbRef.child(`users/${telegramId}`);
+    const userRef = child(dbRef, `users/${telegramId}`);
 
     // Обновляем инвентарь
     if (updates.inventory) {
-      const inventoryRef = userRef.child('inventory');
-      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
+      const inventoryRef = child(userRef, 'inventory');
+      await update(inventoryRef, updates.inventory); // Перезаписываем узел inventory
       delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
     // Обновляем остальные поля
-    await userRef.update(updates);
+    await update(userRef, updates);
   } catch (error) {
     console.error('Error updating user data:', error);
     throw error; 
@@ -194,8 +194,8 @@ let ownedCars = new Array(12).fill(null); // Создаем массив из 12
 let balance = 10;
 let earnRate = 0;
 let topScore = 0;
-let carRef = null;  // Объявляем carRef глобально
-let carTop = null
+let carRef = 0;  // Объявляем carRef глобально
+let carTop = 0; 
 
 // Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
@@ -348,15 +348,18 @@ async function endMove(event) {
         const draggedCar = ownedCars[movingCarIndex];
         const targetCar = ownedCars[targetIndex];
 
-        // Проверка, что оба слота не пустые (level > 0) и уровни совпадают
-        if (targetCar && draggedCar && draggedCar.level > 0 && targetCar.level > 0 && draggedCar.level === targetCar.level) {
+        // Проверка, что оба слота не пустые (level > 0) и уровни совпадают, а также что целевой слот не занят машиной
+        if (targetCar && draggedCar && draggedCar.level > 0 && targetCar.level > 0 && draggedCar.level === targetCar.level && targetCar.level < 10) {
           ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
-          ownedCars[movingCarIndex] = null; // Очищаем исходный слот
+          ownedCars[movingCarIndex].level = 0; // Обнуляем уровень исходной машинки
+        } else if (targetCar && targetCar.level === 0) { // Если целевой слот пустой, просто переносим машинку
+          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
         } else {
-          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
+          // Если ни одно из условий не выполняется, ничего не делаем
+          return;
         }
 
-        // Обновляем данные в Firebase Realtime Database
+        // Обновляем данные в базе данных
         try {
           const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || 1;
 
@@ -369,7 +372,7 @@ async function endMove(event) {
           await updateUserData(telegramId, { inventory: inventoryUpdates });
         } catch (error) {
           console.error('Ошибка при обновлении данных в базе данных:', error);
-          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
+          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз. Код ошибки: " + error.code); // Добавили код ошибки
 
           // Отменяем перемещение, если обновление не удалось
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
@@ -379,6 +382,9 @@ async function endMove(event) {
         updateEarnRate();
       }
     }
+  
+
+
 
     // Сбрасываем стили и переменные
     movingCarElement.style.transform = '';

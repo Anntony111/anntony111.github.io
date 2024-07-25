@@ -141,47 +141,42 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
   const username = Telegram.WebApp.initDataUnsafe?.user?.username;
   const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
 
-  try {
-    let userData = await getUserData(telegramId);
+  let userData = await getUserData(telegramId);
 
-    if (!userData) {
-      console.log('User not found, creating default profile...');
-      const newUserData = {
-        telegram_id: telegramId,
-        username: username,
-        name: name,
-        balance: 0,
-        inventory: {}, // Создаем пустой объект inventory
-        topScore: 0,
-        created_at: new Date().toISOString()
-      };
+  if (!userData) {
+    console.log('User not found, creating default profile...');
+    const newUserData = {
+      telegram_id: telegramId,
+      username: username,
+      name: name,
+      balance: 0,
+      inventory: {}, // Создаем пустой объект inventory
+      topScore: 0,
+      created_at: new Date().toISOString()
+    };
 
-      // Заполняем inventory машинами по умолчанию
-      for (let i = 0; i < 12; i++) {
-        newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
-      }
-
-      await updateUserData(telegramId, newUserData);
-      userData = await getUserData(telegramId); // Получаем обновленные данные
-      console.log('Default profile created:', userData);
+    // Заполняем inventory машинами по умолчанию
+    for (let i = 0; i < 12; i++) {
+      newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
     }
 
-    balance = userData.balance || 0;
-    ownedCars = Object.values(userData.inventory); // Преобразуем inventory в массив
-    topScore = userData.topScore || 0;
+    await updateUserData(telegramId, newUserData);
+    userData = await getUserData(telegramId); // Получаем обновленные данные
+    console.log('Default profile created:', userData);
+  }
 
-    updateInfoPanels();
-    displayCars();
+  balance = userData.balance || 0;
+  ownedCars = Object.values(userData.inventory); // Преобразуем inventory в массив
+  topScore = userData.topScore || 0;
 
-    const welcomeMessageElement = document.getElementById('welcomeMessage');
-    if (name) {
-      welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
-    } else {
-      welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
-    }
-  } catch (error) {
-    console.error('Ошибка при загрузке данных пользователя:', error);
-    alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
+  updateInfoPanels();
+  displayCars();
+
+  const welcomeMessageElement = document.getElementById('welcomeMessage');
+  if (name) {
+    welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
+  } else {
+    welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
   }
 })();
 

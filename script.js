@@ -473,7 +473,7 @@ function displayShop(telegramId) {
 
     const carInfo = document.createElement("div"); 
     carInfo.innerHTML = `
-      <p>Уровень: ${car.name}</p>
+      <p>: ${car.name}</p>
       <p>Цена: ${abbreviateNumber(car.price)}</p> 
       <p>Доходность: ${abbreviateNumber(car.goldPerSecond)}/сек</p>
     `;
@@ -722,9 +722,19 @@ async function buyCarHandler(event) {
     closeProfileButton.addEventListener('click', () => {
       profileMenu.style.display = 'none'; // Скрываем меню профиля при клике на "Закрыть"
     });
-  
+  });
 
-      profileButton.addEventListener('click', () => {
+
+
+
+
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const profileButton = document.getElementById('profileButton');
+    const profileMenu = document.getElementById('profileMenu');
+    const closeProfileButton = document.getElementById('closeProfileButton');
+
+    profileButton.addEventListener('click', () => {
       profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
     });
 

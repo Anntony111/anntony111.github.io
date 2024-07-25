@@ -18,7 +18,8 @@ const firebaseConfig = {
   measurementId: "G-YDK2323MKK"
 };
 
-
+// Объявляем telegramId глобально
+let telegramId; 
 
 
 // Инициализация Firebase
@@ -94,17 +95,20 @@ async function updateUserData(telegramId, updates) {
   try {
     const userRef = child(dbRef, `users/${telegramId}`);
 
-    // Обновляем инвентарь
+    // Обновляем инвентарь, используя отдельный объект для inventory
     if (updates.inventory) {
-      const inventoryRef = child(userRef, 'inventory');
-      await update(inventoryRef, updates.inventory); // Перезаписываем узел inventory
-      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
+      const inventoryUpdates = {};
+      for (const slotIndex in updates.inventory) {
+        inventoryUpdates[`inventory/${slotIndex}`] = updates.inventory[slotIndex];
+      }
+      await update(userRef, inventoryUpdates);
+      delete updates.inventory;
     }
 
     // Обновляем остальные поля
     await update(userRef, updates);
   } catch (error) {
-    console.error('Error updating user data:', error);
+    console.error('Ошибка при обновлении данных пользователя:', error);
     alert('Произошла ошибка при обновлении данных пользователя. Код ошибки:', error.code);
     throw error; 
   }
@@ -118,6 +122,7 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
 (async () => {
   const urlParams = new URLSearchParams(window.location.search);
   let telegramId = urlParams.get('telegramId') || Telegram.WebApp.initDataUnsafe?.user?.id || '1';
+// Присваиваем telegramId внутри IIFE 
 
   const username = Telegram.WebApp.initDataUnsafe?.user?.username;
   const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');

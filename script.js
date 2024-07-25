@@ -338,30 +338,49 @@ async function endMove(event) {
         if (targetCar && draggedCar && draggedCar.level > 0 && targetCar.level > 0 && draggedCar.level === targetCar.level) {
           ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
           ownedCars[movingCarIndex] = null; // Очищаем исходный слот
-        } else {
-          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
-        }
 
-        // Обновляем данные в Firebase Realtime Database
-        try {
-          const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+          // Обновляем данные в Firebase Realtime Database
+          try {
+            const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || 1; // Используем ID 1, если Telegram ID отсутствует
 
-          // Преобразуем ownedCars в объект для обновления в Firebase
-          const inventoryUpdates = {};
-          for (let i = 0; i < ownedCars.length; i++) {
-            inventoryUpdates[i.toString()] = ownedCars[i];
+            await updateUserData(telegramId, { inventory: ownedCars });
+          } catch (error) {
+            console.error('Ошибка при обновлении данных в базе данных:', error);
+            alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
+
+            // Отменяем перемещение, если обновление не удалось
+            [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
           }
+        } else {
+          // Просто меняем местами машинки, если уровни не совпадают или один из слотов пустой
+          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
 
-          await updateUserData(telegramId, { inventory: inventoryUpdates });
-        } catch (error) {
-          console.error('Ошибка при обновлении данных в базе данных:', error);
-          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
+          // Обновляем данные в Firebase Realtime Database
+          try {
+            const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || 1; // Используем ID 1, если Telegram ID отсутствует
 
-          // Отменяем перемещение, если обновление не удалось
-          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
+            // Преобразуем ownedCars в объект для обновления в Firebase
+            const inventoryUpdates = {};
+            for (let i = 0; i < ownedCars.length; i++) {
+              inventoryUpdates[i.toString()] = ownedCars[i];
+            }
+
+            await updateUserData(telegramId, { inventory: inventoryUpdates });
+          } catch (error) {
+            console.error('Ошибка при обновлении данных в базе данных:', error);
+            alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
+
+            // Отменяем перемещение, если обновление не удалось
+            [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
+          }
         }
+
+        displayCars(); // Обновляем отображение инвентаря
+        updateEarnRate();
       }
     }
+
+  
 
     // Сбрасываем стили и переменные
     movingCarElement.style.transform = '';

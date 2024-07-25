@@ -5,7 +5,6 @@ import { getDatabase, ref, child, get, update } from 'https://www.gstatic.com/fi
 
 
 
-document.addEventListener('DOMContentLoaded', showProfile); 
 
 // Ваша конфигурация Firebase
 const firebaseConfig = {
@@ -19,8 +18,7 @@ const firebaseConfig = {
   measurementId: "G-YDK2323MKK"
 };
 
-// Объявляем telegramId глобально
-let telegramId; 
+
 
 
 // Инициализация Firebase
@@ -94,26 +92,23 @@ async function getUserData(telegramId) {
 // Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
-    const userRef = child(dbRef, `users/${telegramId}`);
+    const userRef = dbRef.child(`users/${telegramId}`);
 
-    // Обновляем инвентарь, используя отдельный объект для inventory
+    // Обновляем инвентарь
     if (updates.inventory) {
-      const inventoryUpdates = {};
-      for (const slotIndex in updates.inventory) {
-        inventoryUpdates[`inventory/${slotIndex}`] = updates.inventory[slotIndex];
-      }
-      await update(userRef, inventoryUpdates);
-      delete updates.inventory;
+      const inventoryRef = userRef.child('inventory');
+      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
+      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }
 
     // Обновляем остальные поля
-    await update(userRef, updates);
+    await userRef.update(updates);
   } catch (error) {
-    console.error('Ошибка при обновлении данных пользователя:', error);
-    alert('Произошла ошибка при обновлении данных пользователя. Код ошибки:', error.code);
+    console.error('Error updating user data:', error);
     throw error; 
   }
 }
+
 
 const connectingMessage = document.createElement('p');
 connectingMessage.textContent = 'Соединение с базой данных...';
@@ -123,7 +118,6 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
 (async () => {
   const urlParams = new URLSearchParams(window.location.search);
   let telegramId = urlParams.get('telegramId') || Telegram.WebApp.initDataUnsafe?.user?.id || '1';
-// Присваиваем telegramId внутри IIFE 
 
   const username = Telegram.WebApp.initDataUnsafe?.user?.username;
   const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
@@ -200,83 +194,56 @@ let ownedCars = new Array(12).fill(null); // Создаем массив из 12
 let balance = 10;
 let earnRate = 0;
 let topScore = 0;
-let carRef = 0;  // Объявляем carRef глобально
-let carTop = 0; 
+let carRef = null;  // Объявляем carRef глобально
+let carTop = null
 
 // Функция для получения изображения машинки по уровню
+// Функция для получения изображения машинки по уровню
 function getCarImageByLevel(level) {
-  if (level > 0 && level <= cars.length) { // Добавляем проверку level > 0
-    return cars[level - 1].image;
+  if (level === 0 || level > cars.length) {
+    return null; // Возвращаем null, если слот пустой или уровень машинки не найден
   } else {
-    return null; // Возвращаем null, если слот пустой или уровень не найден
+    return cars[level - 1].image;
   }
 }
 
 
 function displayCars() {
   const inventory = document.getElementById("inventory");
-  inventory.innerHTML = ""; // Очищаем инвентарь
+  inventory.innerHTML = ""; // Очищаем инвентарь перед обновлением
 
   ownedCars.forEach((car, index) => {
-    const carSlot = document.createElement("div");
-    carSlot.classList.add("car-slot");
+    const carSlot = document.createElement("div"); 
+    carSlot.classList.add("car-slot");  // Добавляем класс для стилизации слота
+    carSlot.draggable = true;           // Делаем слот перетаскиваемым
+    carSlot.dataset.index = index;      // Запоминаем индекс слота в дата-атрибуте
 
-    if (car && car.level > 0) { // Если слот не пустой и уровень больше 0
-      carSlot.draggable = true; // Делаем слот перетаскиваемым
-      carSlot.dataset.index = index;
-
+    if (car) { // Если в слоте есть машинка
       // Добавляем изображение машинки
       const carImage = document.createElement("img");
-      carImage.src = getCarImageByLevel(car.level) || "default_car_image.png";
-      carImage.alt = car.name;
-      carImage.onerror = () => {
-        console.error(`Failed to load image for car ${car.name}`);
-        carImage.src = "default_car_image.png";
-      };
+      carImage.src = getCarImageByLevel(car.level); 
+      carImage.alt = car.name; 
       carSlot.appendChild(carImage);
 
       // Добавляем отображение уровня машинки
       const carLevel = document.createElement("div");
-      carLevel.classList.add("car-level");
+      carLevel.classList.add("car-level"); 
       carLevel.textContent = `Lvl ${car.level}`;
       carSlot.appendChild(carLevel);
-
-      // Добавляем информацию о машинке при наведении (tooltip)
-      const tooltip = document.createElement("div");
-      tooltip.classList.add("tooltip");
-      tooltip.textContent = `Название: ${car.name}\nУровень: ${car.level}`;
-      carSlot.appendChild(tooltip);
-    } else {
-      // Если слот пустой, добавляем текст "Пусто" и делаем его не перетаскиваемым
-      carSlot.textContent = "Пусто";
-      carSlot.draggable = false;
     }
 
-    // --- Обработчики событий для перетаскивания ---
+    // Добавляем обработчики событий для перетаскивания (drag-and-drop)
+    carSlot.addEventListener("mousedown", startMove);     
+    carSlot.addEventListener("mousemove", moveCar);
+    carSlot.addEventListener("mouseup", endMove);
+    // Обработчики для сенсорных устройств (touch events)
+    carSlot.addEventListener("touchstart", startMove);
+    carSlot.addEventListener("touchmove", moveCar);
+    carSlot.addEventListener("touchend", endMove);
 
-    carSlot.addEventListener("dragstart", (event) => {
-      if (car && car.level > 0) { 
-        event.dataTransfer.setData("text/plain", index);
-        movingCarIndex = index;
-        movingCarElement = carSlot;
-      }
-    });
-
-    carSlot.addEventListener("dragover", (event) => {
-      event.preventDefault();
-    });
-
-    carSlot.addEventListener("drop", async (event) => {
-      event.preventDefault();
-      const data = event.dataTransfer.getData("text/plain");
-      const targetIndex = parseInt(carSlot.dataset.index);
-      await endMove(event, data, targetIndex); // Передаем данные о перетаскивании в endMove
-    });
-
-    inventory.appendChild(carSlot);
+    inventory.appendChild(carSlot); // Добавляем слот в инвентарь
   });
 }
-
 
 let movingCarIndex = null;
 let movingCarElement = null;
@@ -354,55 +321,38 @@ async function endMove(event) {
         const draggedCar = ownedCars[movingCarIndex];
         const targetCar = ownedCars[targetIndex];
 
-        // Проверка, что оба слота не пустые (level > 0) и уровни совпадают, а также что целевой слот не занят машиной
-        if (targetCar && draggedCar && draggedCar.level > 0 && targetCar.level > 0 && draggedCar.level === targetCar.level && targetCar.level < 10) {
-          if (!ownedCars[targetIndex]) {
-            ownedCars[targetIndex] = { ...targetCar };  // Create the car object if it doesn't exist
-          }
-          ownedCars[targetIndex].level++; // Now you can safely increment
-          ownedCars[movingCarIndex] = null; // Clear the source slot
-        } else if (targetCar && targetCar.level === 0) { // Если целевой слот пустой, просто переносим машинку
-          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
+        if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
+          ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
+          ownedCars[movingCarIndex] = null; // Очищаем исходный слот
         } else {
-          // Если ни одно из условий не выполняется, ничего не делаем
-          return;
+          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
         }
 
-        // Обновляем данные в базе данных
+        // Обновляем данные в Firebase Realtime Database
         try {
-          const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || 1;
+          const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
-          // Создаем объект с изменениями в инвентаре
-          const inventoryUpdates = {
-            [movingCarIndex.toString()]: ownedCars[movingCarIndex],
-            [targetIndex.toString()]: ownedCars[targetIndex]
-          };
-
-          await updateUserData(telegramId, { inventory: inventoryUpdates });
+          await updateUserData(telegramId, { inventory: ownedCars });
         } catch (error) {
           console.error('Ошибка при обновлении данных в базе данных:', error);
-          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз. Код ошибки: " + error.code); // Добавили код ошибки
+          alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
 
           // Отменяем перемещение, если обновление не удалось
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
         }
-
-        displayCars(); // Обновляем отображение инвентаря
-        updateEarnRate();
       }
     }
-  
-
-
 
     // Сбрасываем стили и переменные
     movingCarElement.style.transform = '';
     movingCarElement.classList.remove('dragging');
     movingCarIndex = null;
     movingCarElement = null;
+
+    displayCars(); // Обновляем отображение инвентаря
+    updateEarnRate();
   }
 }
-
 
 
 
@@ -437,8 +387,8 @@ setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
 
 
   
-document.getElementById('shop').addEventListener('click', async (event) => {
-  if (event.target.classList.contains('buy-button')) {
+document.getElementById("shop").addEventListener("click", async (event) => {
+  if (event.target.classList.contains("buy-button")) {
     const carIndex = parseInt(event.target.dataset.carIndex);
     const car = cars[carIndex];
     const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
@@ -446,30 +396,28 @@ document.getElementById('shop').addEventListener('click', async (event) => {
     if (balance >= car.price) {
       balance -= car.price;
 
-      let emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
-
-      // If no empty slot, try to find a slot with the same car
-      if (emptySlotIndex === -1) {
-        emptySlotIndex = ownedCars.findIndex(slot => slot?.name === car.name && slot.level < 10);
-      }
+      const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0); // Находим пустой слот
 
       if (emptySlotIndex !== -1) {
-        if (ownedCars[emptySlotIndex]?.name === car.name) {
-          ownedCars[emptySlotIndex].level++; // Upgrade existing car
-        } else {
-          ownedCars[emptySlotIndex] = { ...car }; // Add new car
-        }
+        ownedCars[emptySlotIndex] = { ...car }; 
 
         try {
-          await updateUserData(telegramId, { balance, inventory: ownedCars, topScore });
+          await updateUserData(telegramId, { 
+            balance, 
+            inventory: ownedCars,  // Передаем массив ownedCars напрямую
+            topScore
+          });
+
           displayCars();
           updateEarnRate();
           updateInfoPanels();
         } catch (error) {
           console.error("Ошибка при обновлении данных в базе данных:", error);
           alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
+
+          // Восстанавливаем баланс и слот инвентаря, если обновление не удалось
           balance += car.price;
-          ownedCars[emptySlotIndex] = null; // Reset the slot if update fails
+          ownedCars[emptySlotIndex] = null; 
         }
       } else {
         alert("Превышен лимит гаража!");
@@ -477,8 +425,8 @@ document.getElementById('shop').addEventListener('click', async (event) => {
     } else {
       alert("Недостаточно средств!");
     }
-  } else if (event.target.id === 'closeShopButton') {
-    document.getElementById('shop').style.display = 'none';
+  } else if (event.target.id === "closeShopButton") {
+    document.getElementById("shop").style.display = "none";
   }
 });
 
@@ -726,64 +674,35 @@ document.getElementById('closeProfileButton').addEventListener('click', () => {
 
 async function showProfile() {
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  const profileMenu = document.getElementById('profileMenu'); // Получаем элемент profileMenu
 
   try {
     const userData = await getUserData(telegramId);
 
-    if (userData) {
-      // Get references to profile elements
-      const profileNameElement = document.getElementById('profileName');
-      const profileBalanceElement = document.getElementById('profileBalance');
-      const profileCarRefElement = document.getElementById('profileCarRef');
-      const profileCarTopElement = document.getElementById('profileCarTop');
-      const profileUsernameElement = document.getElementById('profileUsername');
-      const profileTopScoreElement = document.getElementById('profileTopScore');
-      const profileCreatedAtElement = document.getElementById('profileCreatedAt');
+    if (userData && profileMenu) { // Проверяем, что userData и profileMenu не null
+      document.getElementById('profileName').textContent = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
+      document.getElementById('profileBalance').textContent = userData.balance;
+      document.getElementById('profileCarRef').textContent = userData.car_ref;
+      document.getElementById('profileCarTop').textContent = userData.car_top;
+      // Заполняем остальные поля профиля данными из userData
 
-      // Check if all elements exist before setting textContent
-      if (
-        profileNameElement &&
-        profileBalanceElement &&
-        profileCarRefElement &&
-        profileCarTopElement &&
-        profileUsernameElement &&
-        profileTopScoreElement &&
-        profileCreatedAtElement
-      ) {
-        profileNameElement.textContent = userData.name || "Имя не установлено";
-        profileBalanceElement.textContent = userData.balance;
-        profileCarRefElement.textContent = userData.car_ref || 0;
-        profileCarTopElement.textContent = userData.car_top || 0;
-        profileUsernameElement.textContent = userData.username || "Имя пользователя не установлено";
-        profileTopScoreElement.textContent = userData.topScore;
-        profileCreatedAtElement.textContent = userData.created_at ? new Date(userData.created_at).toLocaleString() : "Недоступно";
-
-        // Show the profile menu
-        document.getElementById('profileMenu').style.display = 'block';
-      } else {
-        console.error('Some profile elements not found.');
-        alert('Некоторые элементы профиля не найдены. Пожалуйста, перезагрузите страницу.');
-      }
+      profileMenu.style.display = 'block'; // Показываем меню профиля
     } else {
-      console.error('User data not found.');
-      alert('Данные пользователя не найдены. Пожалуйста, перезагрузите страницу.');
+      // Обработка ситуации, когда данные пользователя не найдены в базе данных
+      console.error('Данные пользователя или profileMenu не найдены.');
+      // Можно добавить вывод сообщения пользователю или другие действия
     }
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Ошибка при получении данных пользователя:', error);
     alert("Произошла ошибка при загрузке профиля. Пожалуйста, попробуйте еще раз.");
   }
-
-  // Update the welcome message
   const welcomeMessageElement = document.getElementById('welcomeMessage');
-  const name = userData?.name || "Пользователь"; // Use userData if available
-  welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
+  if (name) {
+    welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
+  } else {
+    welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
+  }
 }
-
-// Call showProfile after the DOM is loaded
-document.addEventListener('DOMContentLoaded', showProfile);
-
-
-
 
 
 
@@ -808,7 +727,7 @@ console.log(document.getElementById('inventory')); // Должен вывест�
 console.log(document.getElementById('shop'));
 
 document.getElementById('shopButton').addEventListener('click', () => {
-  displayShop();
-  document.getElementById('shop').style.display = 'flex'; // Показываем магазин
+  console.log('Shop button clicked'); // Должен вывести сообщение при клике
 });
 
+document.addEventListener('DOMContentLoaded', showProfile); // Вызываем showProfile после загрузки DOM

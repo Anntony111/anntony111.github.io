@@ -80,24 +80,23 @@ async function main() {
           topScore: 0,
           car_ref: 0,
           car_top: 0,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          // Инициализируем инвентарь с пустыми слотами (null)
+          inventar1: null,
+          inventar2: null,
+          inventar3: null,
+          inventar4: null,
+          inventar5: null,
+          inventar6: null,
+          inventar7: null,
+          inventar8: null,
+          inventar9: null,
+          inventar10: null,
+          inventar11: null,
+          inventar12: null
         };
-
-        // Инициализируем каждый слот инвентаря отдельно
-        await updateUserData(telegramId, { inventar1: null });
-        await updateUserData(telegramId, { inventar2: null });
-        await updateUserData(telegramId, { inventar3: null });
-        await updateUserData(telegramId, { inventar4: null });
-        await updateUserData(telegramId, { inventar5: null });
-        await updateUserData(telegramId, { inventar6: null });
-        await updateUserData(telegramId, { inventar7: null });
-        await updateUserData(telegramId, { inventar8: null });
-        await updateUserData(telegramId, { inventar9: null });
-        await updateUserData(telegramId, { inventar10: null });
-        await updateUserData(telegramId, { inventar11: null });
-        await updateUserData(telegramId, { inventar12: null });
-
-        // Обновляем остальные поля пользователя
+          
+          // Обновляем данные пользователя одним вызовом
         await updateUserData(telegramId, newUserData);
       }
     } catch (error) {
@@ -107,9 +106,6 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
   }
 }
-
-
-main();
 
 
 

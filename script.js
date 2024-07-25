@@ -448,7 +448,7 @@
 
 
   // Функция для отображения магазина
-  function displayShop(telegramId) { 
+  function displayShop(telegramId) {
     const shop = document.getElementById("shop");
     shop.innerHTML = `
       <div class="shop-header">
@@ -457,75 +457,79 @@
       </div>
       <div id="shopContent"> </div>
     `;
-
+  
     const shopContent = document.getElementById("shopContent");
-
+  
     cars.forEach((car, index) => {
       const shopItem = document.createElement("div");
       shopItem.classList.add("shop-item");
-
+  
       const carImage = document.createElement("img");
       carImage.src = car.image;
       carImage.alt = car.name;
       shopItem.appendChild(carImage);
-
+  
       const carInfo = document.createElement("div");
       carInfo.innerHTML = `
         <p>Уровень: ${car.level}</p>
         <p>Цена: ${car.price}</p>
       `;
+  
+      // Проверяем, есть ли место в гараже
+      const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
+  
+      if (emptySlotIndex !== -1) {
+        const buyButton = document.createElement("button");
+        buyButton.classList.add("buy-button");
+        buyButton.dataset.carIndex = index;
+        buyButton.textContent = "Купить";
+  
+        // Обработчик события для кнопки "Купить"
+        buyButton.addEventListener("click", async () => {
+          if (balance >= car.price) {
+            try {
+              // Уменьшаем баланс и обновляем данные в базе данных
+              balance -= car.price;
+              ownedCars[emptySlotIndex] = { ...car };
+  
+              await updateUserData(telegramId, {
+                balance,
+                inventory: ownedCars,
+                topScore
+              });
+  
+              // Удаляем кнопку "Купить" после покупки
+              buyButton.remove(); 
+  
+              displayCars();
+              updateEarnRate();
+              updateInfoPanels();
+            } catch (error) {
+              console.error("Ошибка при обновлении данных в базе данных:", error);
+              alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
+  
+              // Возвращаем баланс, если обновление не удалось
+              balance += car.price;
+              updateInfoPanels(); // Обновляем отображение баланса
+            }
+          } else {
+            alert("Недостаточно средств!");
+          }
+        });
+  
+        carInfo.appendChild(buyButton);
+      } else {
+        const noSpaceMessage = document.createElement("p");
+        noSpaceMessage.textContent = "Нет места в гараже";
+        carInfo.appendChild(noSpaceMessage);
+      }
+  
+      shopItem.appendChild(carInfo);
+      shopContent.appendChild(shopItem);
+    });
 
- // Находим пустой слот для ЭТОЙ конкретной машины
- const emptySlotIndex = ownedCars.findIndex(
-  (slot, i) => (!slot || slot.level === 0) && i >= index // Начинаем поиск с индекса текущей машины
-);
 
- if (emptySlotIndex !== -1) {
-   const buyButton = document.createElement("button");
-   buyButton.classList.add("buy-button");
-   buyButton.dataset.carIndex = index;
-   buyButton.textContent = "Купить";
-
-   // Обработчик события для кнопки "Купить"
-   buyButton.addEventListener("click", async () => {
-     if (balance >= car.price) {
-       try {
-         // Уменьшаем баланс и обновляем данные в базе данных
-         balance -= car.price;
-         ownedCars[emptySlotIndex] = { ...car };
-
-         await updateUserData(telegramId, {
-           balance,
-           inventory: ownedCars,
-           topScore
-         });
-
-         displayCars();
-         updateEarnRate();
-         updateInfoPanels();
-       } catch (error) {
-         console.error("Ошибка при обновлении данных в базе данных:", error);
-         alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
-
-         // Возвращаем баланс, если обновление не удалось
-         balance += car.price;
-         updateInfoPanels(); // Обновляем отображение баланса
-       }
-     } else {
-       alert("Недостаточно средств!");
-     }
-   });
-
-  carInfo.appendChild(buyButton);
-} else {
-  const noSpaceMessage = document.createElement("p");
-  noSpaceMessage.textContent = "Нет места в гараже";
-  carInfo.appendChild(noSpaceMessage);
-}
-
-shopItem.appendChild(carInfo);
-shopContent.appendChild(shopItem);
-});
+    
 
     // Обработчик события для кнопки "Закрыть"
     document.getElementById("closeShopButton").addEventListener("click", () => {

@@ -334,14 +334,14 @@ async function endMove(event) {
         const draggedCar = ownedCars[movingCarIndex];
         const targetCar = ownedCars[targetIndex];
 
-        // Проверка, что оба слота не пустые и уровни совпадают
+        // Проверка, что оба слота не пустые (level > 0) и уровни совпадают
         if (targetCar && draggedCar && draggedCar.level > 0 && targetCar.level > 0 && draggedCar.level === targetCar.level) {
           ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
           ownedCars[movingCarIndex] = null; // Очищаем исходный слот
 
           // Обновляем данные в Firebase Realtime Database
           try {
-            const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || 1; // Используем ID 1, если Telegram ID отсутствует
+            const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || 1;
 
             await updateUserData(telegramId, { inventory: ownedCars });
           } catch (error) {
@@ -357,21 +357,12 @@ async function endMove(event) {
 
           // Обновляем данные в Firebase Realtime Database
           try {
-            const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || 1; // Используем ID 1, если Telegram ID отсутствует
+            const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || 1;
 
-            // Преобразуем ownedCars в объект для обновления в Firebase
-            const inventoryUpdates = {};
-            for (let i = 0; i < ownedCars.length; i++) {
-              inventoryUpdates[i.toString()] = ownedCars[i];
-            }
-
-            await updateUserData(telegramId, { inventory: inventoryUpdates });
+            await updateUserData(telegramId, { inventory: ownedCars });
           } catch (error) {
             console.error('Ошибка при обновлении данных в базе данных:', error);
             alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
-
-            // Отменяем перемещение, если обновление не удалось
-            [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
           }
         }
 
@@ -380,18 +371,14 @@ async function endMove(event) {
       }
     }
 
-  
-
     // Сбрасываем стили и переменные
     movingCarElement.style.transform = '';
     movingCarElement.classList.remove('dragging');
     movingCarIndex = null;
     movingCarElement = null;
-
-    displayCars(); // Обновляем отображение инвентаря
-    updateEarnRate();
   }
 }
+
 
 
 

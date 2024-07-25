@@ -137,12 +137,12 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
         username: username,
         name: name,
         balance: 0,
-        inventory: {},
+        inventory: {}, // Создаем пустой объект inventory
         topScore: 0,
-        earnRate: 0, // Добавляем earnRate в данные нового пользователя
         created_at: new Date().toISOString()
       };
 
+      // Заполняем inventory машинами по умолчанию
       for (let i = 0; i < 12; i++) {
         newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
       }
@@ -152,13 +152,11 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
       console.log('Default profile created:', userData);
     }
 
-    // Используем данные из userData
-    balance = userData.balance;
-    ownedCars = Object.values(userData.inventory);
-    topScore = userData.topScore;
-    earnRate = userData.earnRate; // Загружаем earnRate из userData
+    balance = userData.balance || 0;
+    ownedCars = Object.values(userData.inventory); // Преобразуем inventory в массив
+    topScore = userData.topScore || 0;
 
-    updateInfoPanels(userData); // Обновляем информационные панели с данными пользователя
+    updateInfoPanels();
     displayCars();
 
     const welcomeMessageElement = document.getElementById('welcomeMessage');
@@ -167,15 +165,11 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
     } else {
       welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
     }
-
-    // Вызываем earnCoins при старте, чтобы рассчитать заработок, накопленный за время отсутствия
-    earnCoins();
   } catch (error) {
     console.error('Ошибка при загрузке данных пользователя:', error);
     alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
   }
 })();
-
 
 
 
@@ -484,10 +478,10 @@ function animateCars() {
 }
 
 // Функция для обновления значений в табличках
-function updateInfoPanels(userData) { // Добавляем параметр userData
-  document.getElementById("balance").textContent = userData.balance;
-  document.getElementById("earnRate").textContent = `${userData.earnRate}/мин`;
-  document.getElementById("topScore").textContent = userData.topScore;
+function updateInfoPanels() {
+  document.getElementById("balance").textContent = balance;
+  document.getElementById("earnRate").textContent = `${earnRate}/мин`;
+  document.getElementById("topScore").textContent = topScore;
 }
 
 // Обработчики событий для кнопок (пример)

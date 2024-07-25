@@ -42,7 +42,7 @@ async function main() {
 }
 
 main(); // Вызываем функцию main() для запуска приложения
- 
+
 
 
 // Получение данных пользователя
@@ -105,7 +105,7 @@ async function updateUserData(telegramId, updates) {
     await userRef.update(updates);
   } catch (error) {
     console.error('Error updating user data:', error);
-    throw error; 
+    throw error;
   }
 }
 
@@ -208,41 +208,35 @@ function getCarImageByLevel(level) {
 }
 
 
+
 function displayCars() {
   const inventory = document.getElementById("inventory");
-  inventory.innerHTML = ""; // Очищаем инвентарь перед обновлением
-
-  ownedCars.forEach((car, index) => {
-    const carSlot = document.createElement("div"); 
-    carSlot.classList.add("car-slot");  // Добавляем класс для стилизации слота
-    carSlot.draggable = true;           // Делаем слот перетаскиваемым
-    carSlot.dataset.index = index;      // Запоминаем индекс слота в дата-атрибуте
-
-    if (car) { // Если в слоте есть машинка
-      // Добавляем изображение машинки
+  inventory.innerHTML = "";
+  for (let index = 0; index < ownedCars.length; index++) {
+    const carSlot = document.createElement("div");
+    carSlot.classList.add("car-slot");
+    carSlot.draggable = true;
+    carSlot.dataset.index = index;
+    // Проверка уровня: если уровень 0, то слот пустой
+    if (ownedCars[index] && ownedCars[index].level > 0) {
       const carImage = document.createElement("img");
-      carImage.src = getCarImageByLevel(car.level); 
-      carImage.alt = car.name; 
+      carImage.src = getCarImageByLevel(ownedCars[index].level);
+      carImage.alt = ownedCars[index].name;
       carSlot.appendChild(carImage);
-
-      // Добавляем отображение уровня машинки
       const carLevel = document.createElement("div");
-      carLevel.classList.add("car-level"); 
-      carLevel.textContent = `Lvl ${car.level}`;
+      carLevel.classList.add("car-level");
+      carLevel.textContent = `Lvl ${ownedCars[index].level}`;
       carSlot.appendChild(carLevel);
     }
-
-    // Добавляем обработчики событий для перетаскивания (drag-and-drop)
-    carSlot.addEventListener("mousedown", startMove);     
+    // Добавляем обработчики событий drag-and-drop (как и раньше)
+    carSlot.addEventListener("mousedown", startMove);
     carSlot.addEventListener("mousemove", moveCar);
     carSlot.addEventListener("mouseup", endMove);
-    // Обработчики для сенсорных устройств (touch events)
     carSlot.addEventListener("touchstart", startMove);
     carSlot.addEventListener("touchmove", moveCar);
     carSlot.addEventListener("touchend", endMove);
-
-    inventory.appendChild(carSlot); // Добавляем слот в инвентарь
-  });
+    inventory.appendChild(carSlot);
+  }
 }
 
 let movingCarIndex = null;
@@ -275,32 +269,32 @@ function moveCar(event) {
   event.preventDefault();
 
   let newLeft; // Объявляем newLeft один раз
-  let newTop; 
+  let newTop;
 
   if (movingCarElement) {
-      const clientX = event.clientX || event.touches[0].clientX;
-      const clientY = event.clientY || event.touches[0].clientY;
+    const clientX = event.clientX || event.touches[0].clientX;
+    const clientY = event.clientY || event.touches[0].clientY;
 
-      // Получаем границы контейнера инвентаря
-      const inventoryRect = document.getElementById('inventory').getBoundingClientRect();
+    // Получаем границы контейнера инвентаря
+    const inventoryRect = document.getElementById('inventory').getBoundingClientRect();
 
-      // Получаем размеры машинки
-      const carWidth = movingCarElement.offsetWidth;
-      const carHeight = movingCarElement.offsetHeight;
+    // Получаем размеры машинки
+    const carWidth = movingCarElement.offsetWidth;
+    const carHeight = movingCarElement.offsetHeight;
 
-      // Вычисляем границы для перемещения машинки
-      const minX = inventoryRect.left;
-      const maxX = inventoryRect.right - carWidth;
-      const minY = inventoryRect.top;
-      const maxY = inventoryRect.bottom - carHeight;
+    // Вычисляем границы для перемещения машинки
+    const minX = inventoryRect.left;
+    const maxX = inventoryRect.right - carWidth;
+    const minY = inventoryRect.top;
+    const maxY = inventoryRect.bottom - carHeight;
 
-      // Ограничиваем координаты машинки и присваиваем значения переменным
-      newLeft = Math.max(minX, Math.min(clientX - movingCarElement.dataset.offsetX, maxX));
-      newTop = Math.max(minY, Math.min(clientY - movingCarElement.dataset.offsetY, maxY));
+    // Ограничиваем координаты машинки и присваиваем значения переменным
+    newLeft = Math.max(minX, Math.min(clientX - movingCarElement.dataset.offsetX, maxX));
+    newTop = Math.max(minY, Math.min(clientY - movingCarElement.dataset.offsetY, maxY));
 
-      // Устанавливаем CSS переменные для позиционирования
-      movingCarElement.style.setProperty('--newLeft', newLeft + 'px');
-      movingCarElement.style.setProperty('--newTop', newTop + 'px');
+    // Устанавливаем CSS переменные для позиционирования
+    movingCarElement.style.setProperty('--newLeft', newLeft + 'px');
+    movingCarElement.style.setProperty('--newTop', newTop + 'px');
   }
 }
 
@@ -386,7 +380,7 @@ setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута
 
 
 
-  
+
 document.getElementById("shop").addEventListener("click", async (event) => {
   if (event.target.classList.contains("buy-button")) {
     const carIndex = parseInt(event.target.dataset.carIndex);
@@ -399,11 +393,11 @@ document.getElementById("shop").addEventListener("click", async (event) => {
       const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0); // Находим пустой слот
 
       if (emptySlotIndex !== -1) {
-        ownedCars[emptySlotIndex] = { ...car }; 
+        ownedCars[emptySlotIndex] = { ...car };
 
         try {
-          await updateUserData(telegramId, { 
-            balance, 
+          await updateUserData(telegramId, {
+            balance,
             inventory: ownedCars,  // Передаем массив ownedCars напрямую
             topScore
           });
@@ -417,7 +411,7 @@ document.getElementById("shop").addEventListener("click", async (event) => {
 
           // Восстанавливаем баланс и слот инвентаря, если обновление не удалось
           balance += car.price;
-          ownedCars[emptySlotIndex] = null; 
+          ownedCars[emptySlotIndex] = null;
         }
       } else {
         alert("Превышен лимит гаража!");
@@ -542,50 +536,50 @@ function displayShop() {
 
 
 
-  
-  // Обработчик события для кнопки "Магазин"
-  document.getElementById("shopButton").addEventListener("click", () => {
-    displayShop();
-    document.getElementById("shop").style.display = "flex"; // Показываем магазин
-  });
-  
-  // Обработчик события для закрытия магазина
-  document.getElementById("shop").addEventListener("click", (event) => {
-    if (event.target.id === "shop") { // Проверяем, что клик был вне элементов магазина
-      document.getElementById("shop").style.display = "none"; // Скрываем магазин
-    }
-  });
-  
-  const shopHeader = document.querySelector('.shop-header');
-  const inventory = document.getElementById('inventory');
-  
-  function adjustInventoryHeight() {
-    const shopHeaderHeight = shopHeader?.offsetHeight || 0; // Если shopHeader null, используем 0
-    const viewportHeight = window.innerHeight; // Получаем высоту области просмотра
-    const maxHeight = viewportHeight - shopHeaderHeight - 40; // Вычисляем максимальную высоту инвентаря
-  
-    inventory.style.maxHeight = `${maxHeight}px`; // Устанавливаем максимальную высоту инвентаря
+
+// Обработчик события для кнопки "Магазин"
+document.getElementById("shopButton").addEventListener("click", () => {
+  displayShop();
+  document.getElementById("shop").style.display = "flex"; // Показываем магазин
+});
+
+// Обработчик события для закрытия магазина
+document.getElementById("shop").addEventListener("click", (event) => {
+  if (event.target.id === "shop") { // Проверяем, что клик был вне элементов магазина
+    document.getElementById("shop").style.display = "none"; // Скрываем магазин
   }
-  
-  // Вызываем функцию при загрузке страницы и при изменении размера окна
-  window.addEventListener('load', adjustInventoryHeight);
-  window.addEventListener('resize', adjustInventoryHeight);
-  
+});
 
-  window.addEventListener('load', function() {
-    const appElement = document.getElementById('app'); // Получаем элемент #app
-    const windowHeight = window.innerHeight; // Получаем высоту окна
-    const desiredHeight = windowHeight - 10; // Вычитаем 1 сантиметр (10 пикселей)
-  
-    appElement.style.maxHeight = desiredHeight + 'px'; // Устанавливаем максимальную высоту
-  });
-  
-  function adjustPageHeight() {
-    const appElement = document.getElementById('app');
-    const windowHeight = window.innerHeight;
-    const desiredHeight = 0.8 * windowHeight; // 80% от высоты окна (90% - 10%)
+const shopHeader = document.querySelector('.shop-header');
+const inventory = document.getElementById('inventory');
 
-    appElement.style.maxHeight = desiredHeight + 'px';
+function adjustInventoryHeight() {
+  const shopHeaderHeight = shopHeader?.offsetHeight || 0; // Если shopHeader null, используем 0
+  const viewportHeight = window.innerHeight; // Получаем высоту области просмотра
+  const maxHeight = viewportHeight - shopHeaderHeight - 40; // Вычисляем максимальную высоту инвентаря
+
+  inventory.style.maxHeight = `${maxHeight}px`; // Устанавливаем максимальную высоту инвентаря
+}
+
+// Вызываем функцию при загрузке страницы и при изменении размера окна
+window.addEventListener('load', adjustInventoryHeight);
+window.addEventListener('resize', adjustInventoryHeight);
+
+
+window.addEventListener('load', function() {
+  const appElement = document.getElementById('app'); // Получаем элемент #app
+  const windowHeight = window.innerHeight; // Получаем высоту окна
+  const desiredHeight = windowHeight - 10; // Вычитаем 1 сантиметр (10 пикселей)
+
+  appElement.style.maxHeight = desiredHeight + 'px'; // Устанавливаем максимальную высоту
+});
+
+function adjustPageHeight() {
+  const appElement = document.getElementById('app');
+  const windowHeight = window.innerHeight;
+  const desiredHeight = 0.8 * windowHeight; // 80% от высоты окна (90% - 10%)
+
+  appElement.style.maxHeight = desiredHeight + 'px';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -604,21 +598,21 @@ document.addEventListener('DOMContentLoaded', () => {
   let directionY = 1;
 
   function animateCloud() {
-      posX += directionX * 0.5;
-      posY += directionY * 0.2;
+    posX += directionX * 0.5;
+    posY += directionY * 0.2;
 
-      if (posX > window.innerWidth - cloud.offsetWidth || posX < 0) {
-          directionX *= -1;
-      }
-      if (posY > window.innerHeight - cloud.offsetHeight || posY < 0) {
-          directionY *= -1;
-      }
+    if (posX > window.innerWidth - cloud.offsetWidth || posX < 0) {
+      directionX *= -1;
+    }
+    if (posY > window.innerHeight - cloud.offsetHeight || posY < 0) {
+      directionY *= -1;
+    }
 
-      cloud.style.transform = `translate(${posX}px, ${posY}px)`;
-      cloud = document.getElementById('cloud');
-      requestAnimationFrame(animateCloud);
-      const cloud = document.getElementById('cloud');
-     
+    cloud.style.transform = `translate(${posX}px, ${posY}px)`;
+    cloud = document.getElementById('cloud');
+    requestAnimationFrame(animateCloud);
+    const cloud = document.getElementById('cloud');
+
   }
 
   animateCloud();
@@ -630,12 +624,12 @@ window.addEventListener('load', () => {
   const clouds = document.querySelectorAll('.cloud');
 
   clouds.forEach((cloud, index) => {
-      // Начальные позиции облаков (в пикселях)
-      const top = 20 + index * 50; // Начинаем с 10px и увеличиваем на 15px для каждого облака
-      const left = -cloud.offsetWidth - (index * 100); // Начинаем за левой границей экрана
+    // Начальные позиции облаков (в пикселях)
+    const top = 20 + index * 50; // Начинаем с 10px и увеличиваем на 15px для каждого облака
+    const left = -cloud.offsetWidth - (index * 100); // Начинаем за левой границей экрана
 
-      cloud.style.top = top + 'px';
-      cloud.style.left = left + 'px';
+    cloud.style.top = top + 'px';
+    cloud.style.left = left + 'px';
   });
 });
 
@@ -712,11 +706,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const closeProfileButton = document.getElementById('closeProfileButton');
 
   profileButton.addEventListener('click', () => {
-      profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
+    profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
   });
 
   closeProfileButton.addEventListener('click', () => {
-      profileMenu.style.display = 'none';
+    profileMenu.style.display = 'none';
   });
 });
 

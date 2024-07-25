@@ -746,4 +746,4 @@ document.getElementById('shopButton').addEventListener('click', () => {
   console.log('Shop button clicked'); // Должен вывести сообщение при клике
 });
 
-document.addEventListener('DOMContentLoaded', showProfile); // Вызываем showProfile после загрузки DOM
+

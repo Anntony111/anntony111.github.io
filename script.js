@@ -43,7 +43,58 @@ async function main() {
 
 main(); // Вызываем функцию main() для запуска приложения
  
+async function displayShop() {
+  const shop = document.getElementById("shop");
+  shop.innerHTML = `
+    <div class="shop-header">
+      <h2>Магазин</h2>
+      <button id="closeShopButton">Закрыть</button> 
+    </div>
+  `;
 
+  cars.forEach((car, index) => {
+    const shopItem = document.createElement("div");
+    shopItem.classList.add("shop-item");
+
+    const carImage = document.createElement("img");
+    carImage.src = car.image;
+    carImage.alt = car.name;
+    shopItem.appendChild(carImage);
+
+    const carInfo = document.createElement("div");
+    carInfo.innerHTML = `
+      <p>Уровень: ${car.level}</p>
+      <p>Цена: ${car.price}</p>
+    `;
+
+    // Проверяем, есть ли свободные слоты в гараже
+    if (ownedCars.includes(null)) {
+      const buyButton = document.createElement("button");
+      buyButton.classList.add("buy-button");
+      buyButton.dataset.carIndex = index;
+      buyButton.textContent = "Купить";
+      carInfo.appendChild(buyButton);
+    } else {
+      // Если нет свободных слотов, выводим сообщение
+      const noSpaceMessage = document.createElement("p");
+      noSpaceMessage.textContent = "Нет места в гараже";
+      carInfo.appendChild(noSpaceMessage);
+    }
+
+    shopItem.appendChild(carInfo);
+    shop.appendChild(shopItem);
+  });
+
+  // Обработчик события для кнопки "Закрыть"
+  const closeShopButton = document.getElementById("closeShopButton");
+  if (closeShopButton) {
+    closeShopButton.addEventListener("click", () => {
+      shop.style.display = "none";
+    });
+  }
+
+  adjustInventoryHeight(); // Вызываем функцию для корректировки высоты инвентаря
+}
 
 // Получение данных пользователя
 async function getUserData(telegramId) {
@@ -195,7 +246,7 @@ const cars = [
   { name: "10", image: "sports_car.png", level: 10, price: 10000000000 },
 ];
 
-let ownedCars = new Array(12).fill(null); // Создаем массив из 12 пустых слотов для машинок
+let ownedCars = new Array(12).fill(null); // Инициализируем null значениями
 
 // Переменные для хранения данных
 let balance = 10;

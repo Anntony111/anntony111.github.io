@@ -446,101 +446,114 @@
 
 
 
+  let isPurchaseInProgress = false;
 
   // Функция для отображения магазина
-function displayShop(telegramId) {
-  const shop = document.getElementById("shop");
-  shop.innerHTML = `
-    <div class="shop-header">
-      <h2>Магазин</h2>
-      <button id="closeShopButton">Закрыть</button> 
-    </div>
-    <div id="shopContent"> </div>
-  `;
-
-  const shopContent = document.getElementById("shopContent");
-
-  cars.forEach((car, index) => { // Для каждой машины в массиве cars
-    const shopItem = document.createElement("div"); // Создаем элемент для отображения машины
-    shopItem.classList.add("shop-item");
-
-    const carImage = document.createElement("img"); // Создаем элемент для изображения машины
-    carImage.src = car.image;
-    carImage.alt = car.name;
-    shopItem.appendChild(carImage); // Добавляем изображение в элемент машины
-
-    const carInfo = document.createElement("div"); // Создаем элемент для информации о машине
-    carInfo.innerHTML = `
-      <p>Уровень: ${car.level}</p>
-      <p>Цена: ${car.price}</p>
+  function displayShop(telegramId) {
+    const shop = document.getElementById("shop");
+    shop.innerHTML = `
+      <div class="shop-header">
+        <h2>Магазин</h2>
+        <button id="closeShopButton">Закрыть</button> 
+      </div>
+      <div id="shopContent"> </div>
     `;
-
-    // Создаем кнопку "Купить" для каждой машины
-    const buyButton = document.createElement("button");
-    buyButton.classList.add("buy-button");
-    buyButton.dataset.carIndex = index;
-    buyButton.textContent = "Купить";
-
-    // Обработчик события для кнопки "Купить"
-    buyButton.addEventListener("click", async () => {
-      if (buyButton.disabled) return; // Предотвращаем повторные клики
-
-      // Блокируем кнопку на время выполнения
-      buyButton.disabled = true;
-
-      if (balance >= car.price) {
-        try {
-          // Находим первый пустой слот
-          const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
-
-          if (emptySlotIndex !== -1) { // Если есть место в гараже
-            // Уменьшаем баланс и обновляем данные в базе данных
-            balance -= car.price;
-            ownedCars[emptySlotIndex] = { ...car };
-
-            await updateUserData(telegramId, {
-              balance,
-              inventory: ownedCars,
-              topScore
-            });
-
-            displayCars();
-            updateEarnRate();
-            updateInfoPanels();
-
-            console.log("Покупка успешно совершена"); // Лог успешной покупки
-          } else {
-            alert("Нет места в гараже");
-          }
-        } catch (error) {
-          console.error('Error:', error); // Лог ошибок
-        } finally {
-          // Разблокируем кнопку после обновления (независимо от результата)
-          buyButton.disabled = false;
-        }
-      } else {
-        alert("Недостаточно средств!");
-        buyButton.disabled = false; // Разблокируем кнопку в случае недостатка средств
-      }
+  
+    const shopContent = document.getElementById("shopContent");
+  
+    cars.forEach((car, index) => { // Для каждой машины в массиве cars
+      const shopItem = document.createElement("div"); // Создаем элемент для отображения машины
+      shopItem.classList.add("shop-item");
+  
+      const carImage = document.createElement("img"); // Создаем элемент для изображения машины
+      carImage.src = car.image;
+      carImage.alt = car.name;
+      shopItem.appendChild(carImage); // Добавляем изображение в элемент машины
+  
+      const carInfo = document.createElement("div"); // Создаем элемент для информации о машине
+      carInfo.innerHTML = `
+        <p>Уровень: ${car.level}</p>
+        <p>Цена: ${car.price}</p>
+      `;
+  
+      // Создаем кнопку "Купить" для каждой машины
+      const buyButton = document.createElement("button");
+      buyButton.classList.add("buy-button");
+      buyButton.dataset.carIndex = index;
+      buyButton.textContent = "Купить";
+  
+      // Удаление всех существующих обработчиков событий для кнопки "Купить"
+      buyButton.removeEventListener("click", buyCarHandler);
+  
+      // Обработчик события для кнопки "Купить"
+      buyButton.addEventListener("click", buyCarHandler);
+  
+      carInfo.appendChild(buyButton); // Добавляем кнопку в информацию о машине
+      shopItem.appendChild(carInfo); // Добавляем информацию о машине в элемент машины
+      shopContent.appendChild(shopItem); // Добавляем элемент машины в магазин
     });
-
-    carInfo.appendChild(buyButton); // Добавляем кнопку в информацию о машине
-    shopItem.appendChild(carInfo); // Добавляем информацию о машине в элемент машины
-    shopContent.appendChild(shopItem); // Добавляем элемент машины в магазин
+  
+    // Обработчик события для кнопки "Закрыть"
+    document.getElementById("closeShopButton").addEventListener("click", () => {
+      shop.style.display = "none"; // Скрываем магазин
+    });
+  }
+  
+  async function buyCarHandler(event) {
+    const buyButton = event.target;
+    const carIndex = buyButton.dataset.carIndex;
+    const car = cars[carIndex];
+  
+    if (buyButton.disabled || isPurchaseInProgress) return; // Предотвращаем повторные клики
+  
+    // Блокируем кнопку и устанавливаем флаг
+    buyButton.disabled = true;
+    isPurchaseInProgress = true;
+  
+    if (balance >= car.price) {
+      try {
+        // Находим первый пустой слот
+        const emptySlotIndex = ownedCars.findIndex(slot => !slot || slot.level === 0);
+  
+        if (emptySlotIndex !== -1) { // Если есть место в гараже
+          // Уменьшаем баланс и обновляем данные в базе данных
+          balance -= car.price;
+          ownedCars[emptySlotIndex] = { ...car };
+  
+          await updateUserData(telegramId, {
+            balance,
+            inventory: ownedCars,
+            topScore
+          });
+  
+          displayCars();
+          updateEarnRate();
+          updateInfoPanels();
+  
+          console.log("Покупка успешно совершена"); // Лог успешной покупки
+        } else {
+          alert("Нет места в гараже");
+        }
+      } catch (error) {
+        console.error('Error:', error); // Лог ошибок
+      } finally {
+        // Разблокируем кнопку и сбрасываем флаг
+        buyButton.disabled = false;
+        isPurchaseInProgress = false;
+      }
+    } else {
+      alert("Недостаточно средств!");
+      buyButton.disabled = false; // Разблокируем кнопку в случае недостатка средств
+      isPurchaseInProgress = false;
+    }
+  }
+  
+  // Обработчик события для кнопки "Магазин"
+  document.getElementById("shopButton").addEventListener("click", () => {
+    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id; // Получаем telegramId внутри обработчика
+    displayShop(telegramId); // Передаем telegramId в displayShop
+    document.getElementById("shop").style.display = "flex";
   });
-
-  // Обработчик события для кнопки "Закрыть"
-  document.getElementById("closeShopButton").addEventListener("click", () => {
-    shop.style.display = "none"; // Скрываем магазин
-  });
-}
-
-// Обработчик события для кнопки "Магазин"
-document.getElementById("shopButton").addEventListener("click", () => {
-  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id; // Получаем telegramId внутри обработчика
-  displayShop(telegramId); // Передаем telegramId в displayShop
-  document.getElementById("shop").style.display = "flex";
-});
 
 
 

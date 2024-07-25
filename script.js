@@ -338,8 +338,8 @@ async function endMove(event) {
             return; // Прерываем выполнение функции
           }
 
-          // Очищаем исходный слот только после успешного сохранения в Firebase
-          ownedCars[movingCarIndex] = null;
+          // Очищаем исходный слот после успешного сохранения в Firebase
+          ownedCars[movingCarIndex] = { level: 0, name: `Car ${movingCarIndex + 1}` }; // Устанавливаем уровень 0 и имя по умолчанию
         } else {
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
         }

@@ -43,23 +43,19 @@ async function main() {
       if (userData) {
         console.log(userData.balance);
 
-        // Выполняем действия, которые должны произойти только один раз после загрузки
         if (!isProfileLoaded) {
           balance = userData.balance || 0;
-          ownedCars = Object.values(userData.inventory);
           topScore = userData.topScore || 0;
 
           updateInfoPanels();
           displayCars();
-          showProfile(); // Вызываем showProfile после инициализации игры
+          showProfile();
 
           isProfileLoaded = true;
         }
 
-        // Выполняем действия, которые должны произойти только один раз после инициализации игры
         if (!isGameInitialized) {
           balance = userData.balance || 0;
-          ownedCars = Object.values(userData.inventory);
           topScore = userData.topScore || 0;
 
           updateInfoPanels();
@@ -81,15 +77,15 @@ async function main() {
           username: username,
           name: name,
           balance: 0,
-          inventory: {},
           topScore: 0,
-          car_ref: 0, 
+          car_ref: 0,
           car_top: 0,
           created_at: new Date().toISOString()
         };
 
-        for (let i = 0; i < 12; i++) {
-          newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+        // Инициализируем инвентарь с пустыми слотами (null)
+        for (let i = 1; i <= 12; i++) {
+          newUserData[`inventar${i}`] = null;
         }
 
         await updateUserData(telegramId, newUserData);
@@ -101,6 +97,7 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
   }
 }
+
 
 main();
 
@@ -116,15 +113,12 @@ async function getUserData(telegramId) {
     if (snapshot.exists()) {
       const userData = snapshot.val();
 
-      // Проверяем и корректируем inventory, если нужно
-      if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
-        userData.inventory = {};
-        for (let i = 0; i < 12; i++) {
-          userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+      // Проверяем и корректируем inventar, если нужно
+      for (let i = 1; i <= 12; i++) {
+        const carData = userData[`inventar${i}`];
+        if (carData && !carData.level) { 
+          userData[`inventar${i}`] = null; 
         }
-
-        // Сохраняем обновленный inventory в базу данных
-        await userRef.update({ inventory: userData.inventory });
       }
 
       // Проверяем и корректируем остальные поля (balance, topScore и т.д.)
@@ -151,20 +145,24 @@ async function getUserData(telegramId) {
 
 
 
-// Обновление данных пользователя
+
 async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
 
-    // Обновляем инвентарь
-    if (updates.inventory) {
-      const inventoryRef = userRef.child('inventory');
-      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
-      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
+    // Обновляем инвентарь (ownedCars)
+    if (updates.ownedCars) {
+      const updatedInventory = {};
+      for (let i = 1; i <= 12; i++) {
+        updatedInventory[`inventar${i}`] = updates.ownedCars[i];
+      }
+      await userRef.update(updatedInventory);
+      delete updates.ownedCars; // Удаляем ownedCars из updates
     }
 
     // Обновляем остальные поля
     await userRef.update(updates);
+
   } catch (error) {
     console.error('Error updating user data:', error);
     throw error;
@@ -308,60 +306,57 @@ function moveCar(event) {
 
 
 async function endMove(event) {
-  event.preventDefault(); // Предотвращаем стандартное действие браузера при перетаскивании
+  event.preventDefault();
 
-  if (movingCarElement) { // Проверяем, что машинка действительно перемещается
-    // Получаем координаты, где отпустили машинку
+  if (movingCarElement) {
     const clientX = event.clientX || event.changedTouches[0].clientX;
     const clientY = event.clientY || event.changedTouches[0].clientY;
 
-    // Находим слот, на который отпустили машинку
     const targetSlot = document.elementFromPoint(clientX, clientY).closest('.car-slot');
 
-    if (targetSlot) { // Если машинка была отпущена над слотом
-      const targetIndex = parseInt(targetSlot.dataset.index); // Получаем индекс целевого слота
+    if (targetSlot) {
+      const targetIndex = parseInt(targetSlot.dataset.index);
 
-      if (movingCarIndex !== targetIndex) { // Если индексы слотов не совпадают (машинка перемещена)
-        const draggedCar = ownedCars[movingCarIndex]; // Получаем данные перетаскиваемой машинки
-        const targetCar = ownedCars[targetIndex];   // Получаем данные машинки в целевом слоте
+      if (movingCarIndex !== targetIndex) {
+        const draggedCar = userData[`inventar${movingCarIndex}`];
+        const targetCar = userData[`inventar${targetIndex}`];
 
-        // Проверка, что ни одна из машинок не нулевого уровня
-        if (draggedCar.level === 0 || targetCar.level === 0) {
-          // Если хотя бы одна машинка нулевого уровня, просто меняем их местами
-          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
-        } else if (draggedCar.level === targetCar.level) { // Если уровни совпадают
-          // Объединяем машинки: увеличиваем уровень целевой машинки
-          ownedCars[targetIndex].level++;
+        // Проверка условий для объединения или перемещения
+        if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
+          // Объединение машинок
+          userData[`inventar${targetIndex}`].level++;
+          userData[`inventar${movingCarIndex}`] = null;
+        } else {
+          // Перемещение машинок
+          [userData[`inventar${movingCarIndex}`], userData[`inventar${targetIndex}`]] = [targetCar, draggedCar];
+        }
 
-          // Обновляем данные в базе данных Firebase
-          try {
-            const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-            await updateUserData(telegramId, { inventory: ownedCars });
-          } catch (error) {
-            // Обработка ошибки при обновлении данных
-            console.error('Ошибка при обновлении данных в базе данных:', error);
-            alert("Произошла ошибка при сохранении данных. Попробуйте еще раз.");
-            // Отменяем перемещение, если обновление не удалось
-            [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
-            return; // Прерываем выполнение функции
-          }
-
-          // Очищаем исходный слот, откуда перетащили машинку (теперь он пустой)
-          ownedCars[movingCarIndex] = null; 
-        } 
+        // Обновление данных в Firebase
+        try {
+          const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+          const updates = {};
+          updates[`inventar${movingCarIndex}`] = draggedCar;
+          updates[`inventar${targetIndex}`] = targetCar;
+          await updateUserData(telegramId, updates);
+        } catch (error) {
+          console.error('Ошибка при обновлении данных в Firebase:', error);
+          // Обработка ошибки (например, отмена перемещения)
+        }
       }
     }
 
-    // Сбрасываем стили и переменные, чтобы машинка вернулась на место и больше не перемещалась
+    // Сбрасываем стили и переменные
     movingCarElement.style.transform = '';
     movingCarElement.classList.remove('dragging');
+
     movingCarIndex = null;
     movingCarElement = null;
 
-    displayCars(); // Обновляем отображение машинок в инвентаре
-    updateEarnRate(); // Обновляем скорость заработка
+    displayCars();
+    updateEarnRate();
   }
 }
+
 
 
 
@@ -381,11 +376,9 @@ function earnCoins() {
 
   const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
 
-  // Создаем копию массива ownedCars перед обновлением
-  const updatedOwnedCars = [...ownedCars];
-
-  updateUserData(telegramId, { balance, inventory: updatedOwnedCars, topScore }); // Передаем копию массива ownedCars
+  updateUserData(telegramId, { balance, topScore }); // Обновляем только balance и topScore
 }
+
 
 
 setInterval(earnCoins, 60000); // 60000 миллисекунд = 1 минута

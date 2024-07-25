@@ -43,62 +43,54 @@ async function main() {
 
 main(); // Вызываем функцию main() для запуска приложения
 
+fetch('/get_user_data')
+  .then(response => response.json())
+  .then(data => {
+    if (data) { // Проверяем, что данные есть
+      // ... (обновляем элементы страницы)
+    } else {
+      console.warn('Данные не получены.');
+    }
+  })
+  .catch(error => {
+    console.error('Ошибка при получении данных пользователя:', error);
+  });
 
-
-// Получение данных пользователя
 async function getUserData(telegramId) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
     const snapshot = await userRef.once('value');
-
     if (snapshot.exists()) {
-      // User found, check and correct data if needed
       const userData = snapshot.val();
 
-      // Ensure inventory is an object with 12 car slots
-      if (!userData.inventory || typeof userData.inventory !== 'object' || Object.keys(userData.inventory).length !== 12) {
-        userData.inventory = {};
+      // Проверяем и корректируем inventory
+      if (!userData.inventory || typeof userData.inventory !== 'object') {
+        userData.inventory = [];
         for (let i = 0; i < 12; i++) {
           userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
         }
-        await userRef.update({ inventory: userData.inventory }); // Save updated inventory
+        await userRef.child('inventory').set(userData.inventory);
       }
 
-      // Ensure other fields exist and have default values
-      userData.balance = userData.balance || 0;
-      userData.topScore = userData.topScore || 0;
-      userData.name = userData.name || "";
-      userData.username = userData.username || "";
-      userData.telegram_id = userData.telegram_id || "";
+      // Проверяем и корректируем остальные поля
+      const defaultFields = ['balance', 'topScore', 'name', 'username', 'telegram_id'];
+      for (const field of defaultFields) {
+        if (field === 'name' || field === 'username') { // Преобразуем только name и username
+          userData[field] = userData[field].toString();
+        } else {
+          userData[field] = userData[field] || 0; // Или "" для строковых полей
+        }
+      }
 
       console.log("Fetched user data:", userData);
       return userData;
     } else {
-      // User not found, create a new profile with default values
-      console.log("User not found, creating default profile...");
-
-      const newUserData = {
-        telegram_id: telegramId,
-        username: Telegram.WebApp.initDataUnsafe?.user?.username || '',
-        name: (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || ''),
-        balance: 0,
-        inventory: {}, // Create empty inventory
-        topScore: 0,
-        created_at: new Date().toISOString()
-      };
-
-      // Fill inventory with default cars
-      for (let i = 0; i < 12; i++) {
-        newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
-      }
-
-      await userRef.set(newUserData); // Create the user data in Firebase
-
-      return newUserData; // Return the newly created data
+      console.log("User not found");
+      return null;
     }
   } catch (error) {
-    console.error('Error loading user data:', error);
-    throw error; // Rethrow the error for handling in the calling function
+    console.error('Ошибка при загрузке данных пользователя:', error);
+    throw error;
   }
 }
 
@@ -107,19 +99,14 @@ async function getUserData(telegramId) {
 
 
 
-
-// Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
-
     // Обновляем инвентарь
     if (updates.inventory) {
-      const inventoryRef = userRef.child('inventory');
-      await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
-      delete updates.inventory; // Удаляем inventory из общего объекта обновлений
+      await userRef.child('inventory').set(updates.inventory);
+      delete updates.inventory;
     }
-
     // Обновляем остальные поля
     await userRef.update(updates);
   } catch (error) {
@@ -141,42 +128,47 @@ document.body.appendChild(connectingMessage); // Добавляем сообще
   const username = Telegram.WebApp.initDataUnsafe?.user?.username;
   const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
 
-  let userData = await getUserData(telegramId);
+  try {
+    let userData = await getUserData(telegramId);
 
-  if (!userData) {
-    console.log('User not found, creating default profile...');
-    const newUserData = {
-      telegram_id: telegramId,
-      username: username,
-      name: name,
-      balance: 0,
-      inventory: {}, // Создаем пустой объект inventory
-      topScore: 0,
-      created_at: new Date().toISOString()
-    };
+    if (!userData) {
+      console.log('User not found, creating default profile...');
+      const newUserData = {
+        telegram_id: telegramId,
+        username: username,
+        name: name,
+        balance: 0,
+        inventory: {}, // Создаем пустой объект inventory
+        topScore: 0,
+        created_at: new Date().toISOString()
+      };
 
-    // Заполняем inventory машинами по умолчанию
-    for (let i = 0; i < 12; i++) {
-      newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+      // Заполняем inventory машинами по умолчанию
+      for (let i = 0; i < 12; i++) {
+        newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+      }
+
+      await updateUserData(telegramId, newUserData);
+      userData = await getUserData(telegramId); // Получаем обновленные данные
+      console.log('Default profile created:', userData);
     }
 
-    await updateUserData(telegramId, newUserData);
-    userData = await getUserData(telegramId); // Получаем обновленные данные
-    console.log('Default profile created:', userData);
-  }
+    balance = userData.balance || 0;
+    ownedCars = Object.values(userData.inventory); // Преобразуем inventory в массив
+    topScore = userData.topScore || 0;
 
-  balance = userData.balance || 0;
-  ownedCars = Object.values(userData.inventory); // Преобразуем inventory в массив
-  topScore = userData.topScore || 0;
+    updateInfoPanels();
+    displayCars();
 
-  updateInfoPanels();
-  displayCars();
-
-  const welcomeMessageElement = document.getElementById('welcomeMessage');
-  if (name) {
-    welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
-  } else {
-    welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
+    const welcomeMessageElement = document.getElementById('welcomeMessage');
+    if (name) {
+      welcomeMessageElement.textContent = `Добро пожаловать, ${name}!`;
+    } else {
+      welcomeMessageElement.textContent = `Добро пожаловать, пользователь ${telegramId}!`;
+    }
+  } catch (error) {
+    console.error('Ошибка при загрузке данных пользователя:', error);
+    alert("Произошла ошибка при загрузке данных. Пожалуйста, попробуйте еще раз.");
   }
 })();
 
@@ -225,23 +217,27 @@ function getCarImageByLevel(level) {
 
 function displayCars() {
   const inventory = document.getElementById("inventory");
-  inventory.innerHTML = "";
+  inventory.innerHTML = ""; // Очищаем инвентарь
+
   for (let index = 0; index < ownedCars.length; index++) {
     const carSlot = document.createElement("div");
     carSlot.classList.add("car-slot");
     carSlot.draggable = true;
     carSlot.dataset.index = index;
+
     // Проверка уровня: если уровень 0, то слот пустой
     if (ownedCars[index] && ownedCars[index].level > 0) {
       const carImage = document.createElement("img");
       carImage.src = getCarImageByLevel(ownedCars[index].level);
       carImage.alt = ownedCars[index].name;
       carSlot.appendChild(carImage);
+
       const carLevel = document.createElement("div");
       carLevel.classList.add("car-level");
       carLevel.textContent = `Lvl ${ownedCars[index].level}`;
       carSlot.appendChild(carLevel);
     }
+
     // Добавляем обработчики событий drag-and-drop (как и раньше)
     carSlot.addEventListener("mousedown", startMove);
     carSlot.addEventListener("mousemove", moveCar);
@@ -249,7 +245,8 @@ function displayCars() {
     carSlot.addEventListener("touchstart", startMove);
     carSlot.addEventListener("touchmove", moveCar);
     carSlot.addEventListener("touchend", endMove);
-    inventory.appendChild(carSlot);
+
+    inventory.appendChild(carSlot); // Добавляем слот в инвентарь
   }
 }
 

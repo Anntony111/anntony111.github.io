@@ -120,7 +120,7 @@ async function getUserData(telegramId) {
       if (!userData.inventory || !Array.isArray(userData.inventory) || userData.inventory.length !== 12) {
         userData.inventory = {};
         for (let i = 0; i < 12; i++) {
-          userData.inventory[i.toString()] = 0; // Пустой слот обозначается как 0
+          userData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
         }
 
         // Сохраняем обновленный inventory в базу данных
@@ -226,7 +226,7 @@ function displayCars() {
     carSlot.draggable = true;
     carSlot.dataset.index = index;
     // Проверка уровня: если уровень 0, то слот пустой
-    if (ownedCars[index] !== 0) { // Проверяем, что значение не равно 0
+    if (ownedCars[index] && ownedCars[index].level > 0) {
       const carImage = document.createElement("img");
       carImage.src = getCarImageByLevel(ownedCars[index].level);
       carImage.alt = ownedCars[index].name;
@@ -324,8 +324,8 @@ async function endMove(event) {
         const targetCar = ownedCars[targetIndex];
 
         if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
-          ownedCars[targetIndex].level++; // Увеличиваем уровень целевой машинки
-      
+          ownedCars[targetIndex].level++;
+
           // Обновляем данные в Firebase Realtime Database перед очисткой слота
           try {
             const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
@@ -338,9 +338,9 @@ async function endMove(event) {
             return; // Прерываем выполнение функции
           }
 
-            // Очищаем исходный слот после успешного сохранения в Firebase
-            ownedCars[movingCarIndex] = 0; // Устанавливаем значение 0 для пустого слота
-            } else {
+          // Очищаем исходный слот после успешного сохранения в Firebase
+          ownedCars[movingCarIndex] = { level: 0, name: `Car ${movingCarIndex + 1}` }; // Устанавливаем уровень 0 и имя по умолчанию
+        } else {
           [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
         }
       }

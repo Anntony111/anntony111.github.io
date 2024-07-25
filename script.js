@@ -667,7 +667,10 @@ const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id || '1';
 const username = Telegram.WebApp.initDataUnsafe?.user?.username || "Не указано";
 const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
 
-async function showProfile() { // Объявление функции showProfile
+async function showProfile() {
+  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  const username = Telegram.WebApp.initDataUnsafe?.user?.username || "Не указано";
+  const name = (Telegram.WebApp.initDataUnsafe?.user?.first_name || '') + ' ' + (Telegram.WebApp.initDataUnsafe?.user?.last_name || '');
   const profileMenu = document.getElementById('profileMenu');
 
   let isProfileLoaded = false;
@@ -677,11 +680,9 @@ async function showProfile() { // Объявление функции showProfil
       const userData = await getUserData(telegramId);
 
       if (userData && profileMenu) {
-        // Проверяем наличие всех необходимых полей
+        // Проверяем наличие только balance и car_ref/car_top
         if (
-          userData.hasOwnProperty('balance') &&
-          userData.hasOwnProperty('car_ref') &&
-          userData.hasOwnProperty('car_top')
+          userData.hasOwnProperty('balance') 
         ) {
           document.getElementById('profileName').textContent = name;
           document.getElementById('profileTelegramId').textContent = telegramId;
@@ -694,7 +695,6 @@ async function showProfile() { // Объявление функции showProfil
           isProfileLoaded = true;
         } else {
           console.error('Не все данные пользователя найдены.');
-          // Здесь можно добавить логику для обработки ситуации, когда данные неполные
         }
       } else {
         console.error('Данные пользователя или profileMenu не найдены.');

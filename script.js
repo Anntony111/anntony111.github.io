@@ -437,7 +437,7 @@ setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 с�
 
   let isPurchaseInProgress = false;
 
-  // Функция для отображения магазина (исправленная)
+ // Функция для отображения магазина
 function displayShop(telegramId) {
   const shop = document.getElementById("shop");
   shop.innerHTML = `
@@ -459,11 +459,11 @@ function displayShop(telegramId) {
     carImage.alt = car.name;
     shopItem.appendChild(carImage); 
 
-    const carInfo = document.createElement("div");
+    const carInfo = document.createElement("div"); 
     carInfo.innerHTML = `
       <p>Name: ${car.name}</p>
-      <p>Цена: ${car.price}</p>
-      <p>Доходность: ${car.goldPerSecond}/сек</p> 
+      <p>Цена: ${car.price.toLocaleString()}</p> // Для удобства чтения больших чисел
+      <p>Доходность: ${car.goldPerSecond} золота/сек</p> 
     `;
 
     // Создаем кнопку "Купить" для каждой машины

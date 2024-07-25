@@ -1,6 +1,5 @@
-export default cars; // Экспорт массива cars по умолчанию
- const cars = [
-    { name: "1", image: "muscle_car.png", level: 1, price: 1000, goldPerSecond: 3.0 },
+const cars = [
+  { name: "1", image: "muscle_car.png", level: 1, price: 1000, goldPerSecond: 3.0 },
   { name: "2", image: "sports_car.png", level: 2, price: 5000, goldPerSecond: 6.3 },
   { name: "3", image: "muscle_car.png", level: 3, price: 10000, goldPerSecond: 13.2 },
   { name: "4", image: "sports_car.png", level: 4, price: 20000, goldPerSecond: 27.8 },
@@ -42,3 +41,5 @@ export default cars; // Экспорт массива cars по умолчани
   { name: "40", image: "sports_car.png", level: 40, price: 1374389534720000, goldPerSecond: 11881685204568.5 },
 
 ];
+
+export default cars;

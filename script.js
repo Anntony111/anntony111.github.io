@@ -323,10 +323,15 @@ async function endMove(event) {
         const draggedCar = ownedCars[movingCarIndex];
         const targetCar = ownedCars[targetIndex];
 
-        if (targetCar && draggedCar && draggedCar.level === targetCar.level) {
+        // Проверка на нулевой уровень
+        if (draggedCar.level === 0 || targetCar.level === 0) {
+          // Если хотя бы одна машинка нулевого уровня, просто меняем местами
+          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar];
+        } else if (draggedCar.level === targetCar.level) {
+          // Если уровни совпадают и не равны нулю, объединяем
           ownedCars[targetIndex].level++;
 
-          // Обновляем данные в Firebase Realtime Database перед очисткой слота
+          // Обновляем данные в Firebase Realtime Database
           try {
             const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
             await updateUserData(telegramId, { inventory: ownedCars });
@@ -335,14 +340,12 @@ async function endMove(event) {
             alert("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте еще раз.");
             // Отменяем перемещение, если обновление не удалось
             [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [draggedCar, targetCar];
-            return; // Прерываем выполнение функции
+            return; 
           }
 
-          // Очищаем исходный слот после успешного сохранения в Firebase
-          ownedCars[movingCarIndex] = { level: 0, name: `Car ${movingCarIndex + 1}` }; // Устанавливаем уровень 0 и имя по умолчанию
-        } else {
-          [ownedCars[movingCarIndex], ownedCars[targetIndex]] = [targetCar, draggedCar]; // Меняем местами
-        }
+          // Очищаем исходный слот
+          ownedCars[movingCarIndex] = { level: 0, name: `Car ${movingCarIndex + 1}` };
+        } 
       }
     }
 
@@ -356,8 +359,6 @@ async function endMove(event) {
     updateEarnRate();
   }
 }
-
-
 
 
 

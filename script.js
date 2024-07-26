@@ -64,6 +64,7 @@ async function main() {
           ownedCars = Object.values(userData.inventory);
           topScore = userData.topScore || 0;
 
+          updateEarnRate(); // Вызываем updateEarnRate()
           updateInfoPanels();
           displayCars();
           showProfile(); // Вызываем showProfile после инициализации игры
@@ -161,14 +162,22 @@ async function getUserData(telegramId) {
 
 
 
-// Обновление данных пользователя
 async function updateUserData(telegramId, updates) {
   try {
     const userRef = dbRef.child(`users/${telegramId}`);
-
     // Обновляем инвентарь
     if (updates.inventory) {
       const inventoryRef = userRef.child('inventory');
+      // Переходим по каждому слоту инвентаря
+      for (const [slotIndex, car] of Object.entries(updates.inventory)) {
+        if (car.level > 0) {
+          // Получаем данные о машинке из массива `cars`
+          const carData = cars[car.level - 1]; // Индекс массива `cars` начинается с 0
+          // Обновляем `name` и `goldPerSecond`
+          updates.inventory[slotIndex].name = carData.name;
+          updates.inventory[slotIndex].goldPerSecond = carData.goldPerSecond;
+        }
+      }
       await inventoryRef.set(updates.inventory); // Перезаписываем узел inventory
       delete updates.inventory; // Удаляем inventory из общего объекта обновлений
     }

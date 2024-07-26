@@ -86,7 +86,7 @@
             telegram_id: telegramId,
             username: username,
             name: name,
-            balance: 3000,
+            balance: 0,
             inventory: {},
             topScore: 0,
             car_ref: 0, 
@@ -198,11 +198,11 @@
   let ownedCars = new Array(12).fill(null); // Создаем массив из 12 пустых слотов для машинок
 
   // Переменные для хранения данных
-  let balance = 3000;
+  let balance = 0;
   let earnRate = 0;
   let topScore = 0;
-  let carRef = null;  // Объявляем carRef глобально
-  let carTop = null
+  let carRef = 0;  // Объявляем carRef глобально
+  let carTop = 0;
   let telegramId
 
   // Функция для получения изображения машинки по уровню
@@ -367,19 +367,19 @@
  
   // Функция для обновления скорости заработка
   function updateEarnRate() {
-    earnRate = ownedCars.reduce((sum, car) => sum + (car ? parseFloat(car.goldPerSecond) : 0), 0);
-    document.getElementById("earnRate").textContent = `${abbreviateNumber(earnRate)}/сек`; // Используем abbreviateNumber
+    earnRate = ownedCars.reduce((sum, car) => sum + (car ? parseFloat(car.goldPerSecond) : 0), 0); // Преобразуем в число
+    document.getElementById("earnRate").textContent = `${abbreviateNumber(earnRate)}/сек`;
   }
 
-function earnCoins() {
-  balance += earnRate * 30; // Заработок за 30 секунд, где earnRate - это золото в секунду
-  updateInfoPanels();
-
-  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-  updateUserData(telegramId, { balance, inventory: ownedCars, topScore }); 
-}
-
-setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 секунд
+  function earnCoins() {
+    balance += earnRate * 30; // Заработок за 30 секунд (earnRate уже в секундах)
+    updateInfoPanels(); // Обновляем таблички
+  
+    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+    updateUserData(telegramId, { balance, inventory: ownedCars, topScore }); 
+  }
+  
+  setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 секунд
 
 
 
@@ -403,13 +403,15 @@ setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 с�
           try {
             await updateUserData(telegramId, {
               balance,
-              inventory: ownedCars,  // Передаем массив ownedCars напрямую
+              inventory: ownedCars,
               topScore
+            }).then(() => { 
+              displayCars();
+              updateEarnRate();
+              updateInfoPanels(); // Обновляем интерфейс после обновления данных
             });
 
-            displayCars();
-            updateEarnRate();
-            updateInfoPanels();
+            
           } catch (error) {
             console.error("Ошибка при обновлении данных в базе данных:", error);
             alert("Произошла ошибка при покупке машинки. Пожалуйста, попробуйте еще раз.");
@@ -440,7 +442,7 @@ setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 с�
   // Функция для обновления значений в табличках
 function updateInfoPanels() {
   document.getElementById("balance").textContent = abbreviateNumber(balance); // Сокращаем баланс
-  document.getElementById("earnRate").textContent = `${earnRate.toFixed(1)}/мин`;
+  document.getElementById("earnRate").textContent = `${abbreviateNumber(earnRate)}/сек`; // Отображаем в секундах
   document.getElementById("topScore").textContent = topScore;
 }
 
@@ -734,15 +736,9 @@ async function buyCarHandler(event) {
     const profileMenu = document.getElementById('profileMenu');
     const closeProfileButton = document.getElementById('closeProfileButton');
 
-    profileButton.addEventListener('click', () => {
-      profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
-    });
-
-    closeProfileButton.addEventListener('click', () => {
-      profileMenu.style.display = 'none';
-    });
   });
 
+   
   // Вызываем функцию при загрузке страницы или при нажатии на кнопку профиля
   showProfile();
 

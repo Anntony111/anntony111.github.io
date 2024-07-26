@@ -76,6 +76,49 @@ async function main() {
 
   document.body.appendChild(welcomeScreen);
 
+  async function initializeProfile() {
+    console.log("User not found, creating default profile...");
+    const newUserData = {
+      telegram_id: telegramId,
+      username: username,
+      name: name,
+      balance: 0,
+      inventory: {},
+      topScore: 0,
+      car_ref: 0,
+      car_top: 0,
+      created_at: new Date().toISOString()
+    };
+
+    for (let i = 0; i < 12; i++) {
+      newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
+    }
+
+    await updateUserData(telegramId, newUserData);
+
+    welcomeScreen.style.display = 'flex';
+
+    document.getElementById('claimBonusButton').addEventListener('click', async () => {
+      newUserData.balance = 100000;
+      newUserData.inventory['0'] = { level: 1, name: cars[0].name, goldPerSecond: cars[0].goldPerSecond };
+
+      await updateUserData(telegramId, newUserData);
+      welcomeScreen.style.display = 'none';
+
+      balance = newUserData.balance;
+      ownedCars = Object.values(newUserData.inventory);
+      topScore = newUserData.topScore;
+
+      updateEarnRate();
+      updateInfoPanels();
+      displayCars();
+      showProfile();
+
+      isProfileLoaded = true;
+      isGameInitialized = true;
+    });
+  }
+
   while (!isProfileLoaded || !isGameInitialized) {
     try {
       userData = await getUserData(telegramId);
@@ -107,44 +150,9 @@ async function main() {
           isGameInitialized = true;
         }
       } else {
-        console.log("User not found, creating default profile...");
-        const newUserData = {
-          telegram_id: telegramId,
-          username: username,
-          name: name,
-          balance: 0,
-          inventory: {},
-          topScore: 0,
-          car_ref: 0,
-          car_top: 0,
-          created_at: new Date().toISOString()
-        };
-
-        for (let i = 0; i < 12; i++) {
-          newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
-        }
-
-        welcomeScreen.style.display = 'flex';
-
-        document.getElementById('claimBonusButton').addEventListener('click', async () => {
-          newUserData.balance = 100000;
-          newUserData.inventory['0'] = { level: 1, name: cars[0].name, goldPerSecond: cars[0].goldPerSecond };
-
-          await updateUserData(telegramId, newUserData);
-          welcomeScreen.style.display = 'none';
-
-          balance = newUserData.balance;
-          ownedCars = Object.values(newUserData.inventory);
-          topScore = newUserData.topScore;
-
-          updateEarnRate();
-          updateInfoPanels();
-          displayCars();
-          showProfile();
-
-          isProfileLoaded = true;
-          isGameInitialized = true;
-        });
+        await initializeProfile();
+        isProfileLoaded = true;
+        isGameInitialized = true;
       }
     } catch (error) {
       console.error('Ошибка при загрузке данных пользователя:', error);

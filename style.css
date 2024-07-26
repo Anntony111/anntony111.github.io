@@ -410,4 +410,43 @@ body {
 }
 
 
-    
+.scene {
+    perspective: 1000px;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .car {
+    position: absolute;
+    bottom: 0;
+    animation: drive 10s ease-in-out infinite;
+  }
+  
+  .wheels {
+    position: absolute;
+    bottom: 0;
+    animation: rotate 1s linear infinite;
+  }
+  
+  .dust {
+    position: absolute;
+    bottom: 0;
+    animation: dust 5s linear infinite;
+  }
+  
+  @keyframes drive {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    50% { transform: translateY(50%) scale(0.8); }
+    100% { transform: translateY(100%) scale(0.5); opacity: 0; }
+  }
+  
+  @keyframes rotate {
+    100% { transform: rotate(360deg); }
+  }
+  
+  @keyframes dust {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  

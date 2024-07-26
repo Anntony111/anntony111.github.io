@@ -1,36 +1,48 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>CarZen</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script> 
+    <title>CarZen</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=0.45, user-scalable=no">
 </head>
 
 <body id="body">
-  <div id="profileContainer"> 
-    <button id="profileButton">
-      <img src="menu.png" alt="Меню">
+
+
+    <div id="profileContainer">
+        <button id="profileButton">
+            <img src="menu.png" alt="Меню">
+        </button>
+        
+    </div>
+
+    <button id="playMusicButton">
+      <img id="musicIcon" src="icon_sound_off.png" alt="Sound Off">
     </button>
-    <div id="profileLabel">Profile</div>
-  </div>
+    <audio id="backgroundMusic" src="fon.mp3" loop></audio>
+    
 
- 
-
-  <div id="app">
-    <div id="profileMenu" style="display: none;"> 
-      <h2>Ваш профиль:</h2>
-      <p>Имя: <span id="profileName"></span></p>
-      <p>ID: <span id="profileTelegramId"></span></p>
-      <p>UN: <span id="profileUsername"></span></p>
-      <p>Баланс: <span id="profileBalance"></span></p>
-      <p>vCar: <span id="profileCarRef"></span></p>
-      <p>CarTop: <span id="profileCarTop"></span></p>
-      <button id="closeProfileButton">Закрыть</button>
-    </div>
+    <div id="app">
+        <div id="profileMenu" style="display: none;">
+            <h2>Ваш профиль:</h2>
+            <p>Имя: <span id="profileName"></span></p>
+            <p>ID: <span id="profileTelegramId"></span></p>
+            <p>UN: <span id="profileUsername"></span></p>
+            <p>Баланс: <span id="profileBalance"></span></p>
+            <p>vCar: <span id="profileCarRef"></span></p>
+            <p>CarTop: <span id="profileCarTop"></span></p>
+            <button id="closeProfileButton">Закрыть</button>
+        </div>
     </div>
 
+
+
+
+    
     <div id="info-panels">
         <div class="info-panel">
             <h3>Баланс</h3>
@@ -47,7 +59,7 @@
     </div>
 
     <div id="content">
-        <div id="inventory"></div> 
+        <div id="inventory"></div>
     </div>
 
     <div id="buttons">
@@ -57,18 +69,17 @@
         <button class="round-button" id="friendsButton">Друзья</button>
     </div>
 
-    <div id="shop" style="display: none;"></div> 
-  </div>
+    <div id="shop" style="display: none;"></div>
+    </div>
 
-  <audio id="backgroundMusic" src="fon.mp3" loop></audio>
-  <button id="playMusicButton">Включить музыку</button>
-
-  <div class="cloud" id="cloud1"></div>
-  <div class="cloud" id="cloud2"></div>
-  <div class="cloud" id="cloud3"></div>
-  <div class="cloud" id="cloud4"></div>
+    
+    <div class="cloud" id="cloud1"></div>
+    <div class="cloud" id="cloud2"></div>
+    <div class="cloud" id="cloud3"></div>
+    <div class="cloud" id="cloud4"></div>
 
 
-  <script type="module" src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
+
 </html>

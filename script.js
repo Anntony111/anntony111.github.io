@@ -718,17 +718,6 @@ window.addEventListener('load', () => {
 
 
 
-document.getElementById('playMusicButton').addEventListener('click', function() {
-  const backgroundMusic = document.getElementById('backgroundMusic');
-
-  // Проверяем, что элемент audio найден
-  if (backgroundMusic) {
-    backgroundMusic.volume = 0.1; // Устанавливаем громкость на 10%
-    backgroundMusic.play(); // Запускаем воспроизведение
-  } else {
-    console.error('Audio element not found!'); // Выводим ошибку в консоль, если элемент не найден
-  }
-});
 
 
 
@@ -814,3 +803,17 @@ console.log(document.getElementById('shop'));
 
 
 
+const playMusicButton = document.getElementById('playMusicButton');
+const backgroundMusic = document.getElementById('backgroundMusic');   
+
+const musicIcon = document.getElementById('musicIcon');
+
+playMusicButton.addEventListener('click', () => {
+  if (backgroundMusic.paused) {
+    backgroundMusic.play();
+    musicIcon.src = 'icon_sound_on.png'; // Меняем на иконку "включено"
+  } else {
+    backgroundMusic.pause();
+    musicIcon.src = 'icon_sound_off.png'; // Меняем на иконку "выключено"
+  }
+});

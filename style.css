@@ -467,6 +467,7 @@ body {
 
 
 #profileButton {
+    background-color: transparent; /* Прозрачный фон кнопки */
     position: fixed;
     top: 40px;
     left: 30px;
@@ -477,9 +478,9 @@ body {
 }
 
 #profileButton img {
-    width: 80px;
+    width: 85px;
     /* Увеличиваем размер иконки в 2 раза */
-    height: 80px;
+    height: 85px;
 }
 
 #profileMenu {
@@ -519,21 +520,6 @@ body {
 }
 
 
-#profileLabel {
-    background-color: #ffd700;
-    /* Цвет фона как у кнопок */
-    color: #002;
-    /* Цвет текста */
-    padding: 5px 10px;
-    /* Отступы */
-    border-radius: 25px;
-    /* Скругленные углы */
-    font-size: 1.3rem;
-    /* Размер шрифта */
-    font-weight: bold;
-    margin-top: 5px;
-    /* Отступ сверху от кнопки */
-}
 
 
 .scene {
@@ -595,3 +581,30 @@ body {
         opacity: 0;
     }
 }
+
+
+
+#playMusicButton {
+    background-color: transparent; /* Прозрачный фон кнопки */
+    position: fixed;
+    top: 150px;
+    left: 31px;
+    /* Перемещаем кнопку влево */
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 11;
+}
+
+  
+
+  #playMusicButton img {
+        width: 85px;
+        /* Увеличиваем размер иконки в 2 раза */
+        height: 85px;
+  }
+
+  #musicButtonWrapper {
+    position: relative; /* Делаем обертку относительной */
+    top: 20px;          /* Сдвигаем вниз на 20 пикселей */
+  }

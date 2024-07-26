@@ -7,7 +7,7 @@ body {
 
     body {
         background-image: url("1.jpg");
-        background-size: 100% 100%;
+        background-size: 100% 500%;
         /* Зафиксируйте размер фонового изображения */
         background-repeat: no-repeat;
         /* Предотвратите повторение фона */
@@ -84,9 +84,8 @@ body {
 
 
 #app {
-    padding-top: calc(1vh + 1000px);
-    /* 10% высоты экрана + 50px */
-
+    padding-top: calc(1vh + 1000px - (1vh + 1000px) * 0.05);
+    /* 10% высоты экрана + 50px - 5% of the original value */
 }
 
 
@@ -478,9 +477,9 @@ body {
 }
 
 #profileButton img {
-    width: 85px;
+    width: 90px;
     /* Увеличиваем размер иконки в 2 раза */
-    height: 85px;
+    height: 90px;
 }
 
 #profileMenu {
@@ -594,17 +593,20 @@ body {
     border: none;
     cursor: pointer;
     z-index: 11;
+    border-radius: 20px;   /* Скругляем углы */
 }
 
   
 
   #playMusicButton img {
-        width: 85px;
+        width: 90px;
         /* Увеличиваем размер иконки в 2 раза */
-        height: 85px;
+        height: 90px;
   }
 
   #musicButtonWrapper {
     position: relative; /* Делаем обертку относительной */
     top: 20px;          /* Сдвигаем вниз на 20 пикселей */
   }
+
+  

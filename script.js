@@ -29,13 +29,17 @@
     const scaled = number / scale;
     return scaled.toFixed(2) + suffix; 
   }
-  
 
 
   // Инициализация Firebase
   const app = firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
   const dbRef = database.ref();
+
+
+
+
+
 
 
   async function main() {
@@ -366,20 +370,24 @@
 
  
   // Функция для обновления скорости заработка
-  function updateEarnRate() {
-    earnRate = ownedCars.reduce((sum, car) => sum + (car ? parseFloat(car.goldPerSecond) : 0), 0); // Преобразуем в число
-    document.getElementById("earnRate").textContent = `${abbreviateNumber(earnRate)}/сек`;
-  }
+ // Функция для обновления скорости заработка
+ function updateEarnRate() {
+  earnRate = ownedCars.reduce((sum, car) => sum + (car ? parseFloat(car.goldPerSecond) : 0), 0);
+  document.getElementById("earnRate").textContent = `${(earnRate * 60).toFixed(1)}/мин`; // Умножаем на 60
+}
 
-  function earnCoins() {
-    balance += earnRate * 30; // Заработок за 30 секунд (earnRate уже в секундах)
-    updateInfoPanels(); // Обновляем таблички
+function earnCoins() {
+  balance += earnRate * 30; // Заработок за 30 секунд
+  updateInfoPanels(); // Обновляем таблички
+
+  const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
+  updateUserData(telegramId, { balance, inventory: ownedCars, topScore }); 
+}
+
+setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 секунд
+
   
-    const telegramId = Telegram.WebApp.initDataUnsafe?.user?.id;
-    updateUserData(telegramId, { balance, inventory: ownedCars, topScore }); 
-  }
-  
-  setInterval(earnCoins, 30000); // Вызываем earnCoins каждые 30 секунд
+
 
 
 
@@ -440,11 +448,11 @@
   }
 
   // Функция для обновления значений в табличках
-function updateInfoPanels() {
-  document.getElementById("balance").textContent = abbreviateNumber(balance); // Сокращаем баланс
-  document.getElementById("earnRate").textContent = `${abbreviateNumber(earnRate)}/сек`; // Отображаем в секундах
-  document.getElementById("topScore").textContent = topScore;
-}
+  function updateInfoPanels() {
+    document.getElementById("balance").textContent = abbreviateNumber(balance); // Сокращаем баланс
+    document.getElementById("earnRate").textContent = `${earnRate.toFixed(1)}/мин`;
+    document.getElementById("topScore").textContent = topScore;
+  }
 
 
 
@@ -473,11 +481,11 @@ function displayShop(telegramId) {
     carImage.alt = car.name;
     shopItem.appendChild(carImage); 
 
-    const carInfo = document.createElement("div"); 
+    const carInfo = document.createElement("div");
     carInfo.innerHTML = `
-      <p>: ${car.name}</p>
-      <p>Цена: ${abbreviateNumber(car.price)}</p> 
-      <p>Доходность: ${abbreviateNumber(car.goldPerSecond)}/сек</p>
+      <p>Name: ${car.name}</p>
+      <p>Цена: ${abbreviateNumber(car.price)}</p>
+      <p>Доходность: ${abbreviateNumber(car.goldPerSecond)}/сек</p> 
     `;
 
     // Создаем кнопку "Купить" для каждой машины

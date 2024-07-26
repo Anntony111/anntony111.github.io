@@ -36,8 +36,19 @@ const app = firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 const dbRef = database.ref();
 
+const welcomeScreen = document.createElement('div');
+welcomeScreen.id = 'welcomeScreen';
+welcomeScreen.innerHTML = `
+  <h2>Добро пожаловать в Cartax!</h2>
+  <p>Бонус для новых игроков:</p>
+  <ul>
+    <li>100 000 Balance</li>
+    <li>Cartax LVL: 1</li>
+  </ul>
+  <button id="claimBonusButton">Забрать бонус</button>
+`;
 
-
+document.body.appendChild(welcomeScreen); // Добавляем экран приветствия в body
 
 
 
@@ -51,6 +62,20 @@ async function main() {
   let isProfileLoaded = false;
   let isGameInitialized = false;
 
+  const welcomeScreen = document.createElement('div');
+  welcomeScreen.id = 'welcomeScreen';
+  welcomeScreen.innerHTML = `
+    <h2>Добро пожаловать в Cartax!</h2>
+    <p>Бонус для новых игроков:</p>
+    <ul>
+      <li>100 000 Balance</li>
+      <li>Cartax LVL: 1</li>
+    </ul>
+    <button id="claimBonusButton">Забрать бонус</button>
+  `;
+
+  document.body.appendChild(welcomeScreen);
+
   while (!isProfileLoaded || !isGameInitialized) {
     try {
       userData = await getUserData(telegramId);
@@ -58,21 +83,19 @@ async function main() {
       if (userData) {
         console.log(userData.balance);
 
-        // Выполняем действия, которые должны произойти только один раз после загрузки
         if (!isProfileLoaded) {
           balance = userData.balance || 0;
           ownedCars = Object.values(userData.inventory);
           topScore = userData.topScore || 0;
 
-          updateEarnRate(); // Вызываем updateEarnRate()
+          updateEarnRate();
           updateInfoPanels();
           displayCars();
-          showProfile(); // Вызываем showProfile после инициализации игры
+          showProfile();
 
           isProfileLoaded = true;
         }
 
-        // Выполняем действия, которые должны произойти только один раз после инициализации игры
         if (!isGameInitialized) {
           balance = userData.balance || 0;
           ownedCars = Object.values(userData.inventory);
@@ -80,8 +103,6 @@ async function main() {
 
           updateInfoPanels();
           displayCars();
-
-
 
           isGameInitialized = true;
         }
@@ -103,7 +124,27 @@ async function main() {
           newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
         }
 
-        await updateUserData(telegramId, newUserData);
+        welcomeScreen.style.display = 'flex';
+
+        document.getElementById('claimBonusButton').addEventListener('click', async () => {
+          newUserData.balance = 100000;
+          newUserData.inventory['0'] = { level: 1, name: cars[0].name, goldPerSecond: cars[0].goldPerSecond };
+
+          await updateUserData(telegramId, newUserData);
+          welcomeScreen.style.display = 'none';
+
+          balance = newUserData.balance;
+          ownedCars = Object.values(newUserData.inventory);
+          topScore = newUserData.topScore;
+
+          updateEarnRate();
+          updateInfoPanels();
+          displayCars();
+          showProfile();
+
+          isProfileLoaded = true;
+          isGameInitialized = true;
+        });
       }
     } catch (error) {
       console.error('Ошибка при загрузке данных пользователя:', error);
@@ -114,6 +155,7 @@ async function main() {
 }
 
 main();
+
 
 
 

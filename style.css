@@ -26,6 +26,63 @@ body {
 
 
 
+
+
+
+
+/* Приветственный экран */
+#welcomeScreen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index:   
+ 1000; /* Выше всех остальных элементов */
+}
+
+#welcomeScreen h2 {
+    font-size: 3rem;
+    color: #ffd700; /* Неоновый желтый */
+    text-shadow: 0 0 10px #ffd700;
+}
+
+#welcomeScreen p, #welcomeScreen ul {
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+#claimBonusButton {
+    background-color: #ffd700;
+    color: #222;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#claimBonusButton:hover {
+    background-color: #ff9800; /* Более темный оттенок при наведении */
+}
+
+
+
+
+
+
+
+
+
+
+
+
 #app {
     padding-top: calc(1vh + 1000px);
     /* 10% высоты экрана + 50px */

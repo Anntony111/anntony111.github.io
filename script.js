@@ -374,13 +374,14 @@ async function endMove(event) {
 function updateEarnRate() {
   earnRate = ownedCars.reduce((sum, car) => {
     if (car) {
-      console.log("Gold per second:", car.goldPerSecond || 0); // Изменяем эту строку
-      return sum + parseFloat(car.goldPerSecond || 0); // Изменяем эту строку
+      return sum + parseFloat(car.goldPerSecond || 0);
     }
     return sum;
   }, 0);
-  document.getElementById("earnRate").textContent = `${(earnRate * 60).toFixed(1)}/сек`;
+  document.getElementById("earnRate").textContent = `${earnRate.toFixed(1)}/сек`;
+
 }
+
 
 function earnCoins() {
   balance += earnRate * 30; // Заработок за 30 секунд

@@ -1,15 +1,24 @@
-
 /* Общие стили */
 body {
     background-color: #1a1a1a;
     font-family: 'Montserrat', sans-serif;
     color: #fff;
     margin: 0;
-    font-size: clamp(16px, 3vw, 20px);
+
+    body {
+        background-image: url("1.jpg");
+        background-size: 100% 100%;
+        /* Зафиксируйте размер фонового изображения */
+        background-repeat: no-repeat;
+        /* Предотвратите повторение фона */
+    }
+
     display: flex;
     flex-direction: column;
-    background-image: url("1.jpg"); /* Путь к твоему изображению */
-    background-size: cover; /* Растягиваем фон на весь экран */
+    background-image: url("1.jpg");
+    /* Путь к твоему изображению */
+    background-size: cover;
+    /* Растягиваем фон на весь экран */
     background-position: center;
     background-repeat: no-repeat;
 }
@@ -18,7 +27,9 @@ body {
 
 
 #app {
-    padding-top: calc(1vh + 1000px); /* 10% высоты экрана + 50px */
+    padding-top: calc(1vh + 1000px);
+    /* 10% высоты экрана + 50px */
+
 }
 
 
@@ -26,12 +37,17 @@ body {
     0% {
         left: -30px;
     }
+
     45% {
-        left: calc(50% - 120px); /* Центрирование машинки */
+        left: calc(50% - 120px);
+        /* Центрирование машинки */
     }
+
     55% {
-        left: calc(50% - 120px); /* Задержка в центре */
+        left: calc(50% - 120px);
+        /* Задержка в центре */
     }
+
     100% {
         left: 100%;
     }
@@ -43,8 +59,9 @@ body {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    max-height: 85vh; /* Ограничиваем высоту контента до 85% высоты экрана */
-    }
+    max-height: 85vh;
+    /* Ограничиваем высоту контента до 85% высоты экрана */
+}
 
 /* Информационные панели */
 #info-panels {
@@ -52,30 +69,33 @@ body {
     justify-content: space-around;
     width: 100%;
     margin-top: 7px;
-    height: auto;  /* Автоматическая высота контейнера */
+    height: auto;
+    /* Автоматическая высота контейнера */
 }
 
 .info-panel {
     background-color: rgba(0, 0, 0, 0.8);
     border: 1px solid #ffd700;
-    padding: 0 10px; /* Убираем верхний и нижний отступы, оставляем боковые */
+    padding: 0 10px;
+    /* Убираем верхний и нижний отступы, оставляем боковые */
     text-align: center;
-    flex: 1;  
+    flex: 1;
     margin: 0 5px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    min-height: 90px; 
-    box-sizing: border-box; 
+    min-height: 90px;
+    box-sizing: border-box;
 }
 
 .info-panel h3 {
-    font-size: clamp(1.4rem, 1.5vw, 1.9rem); 
+    font-size: clamp(1.4rem, 1.5vw, 1.9rem);
     margin: 12px 0;
 }
 
 .info-panel p {
-    font-size: clamp(1.3rem, 2.2vw, 2.2rem); 
-    margin: 0; /* Убираем отступы у текста */
+    font-size: clamp(1.3rem, 2.2vw, 2.2rem);
+    margin: 0;
+    /* Убираем отступы у текста */
 }
 
 
@@ -92,7 +112,8 @@ body {
     width: 90%;
     margin-left: auto;
     margin-right: auto;
-    overflow: hidden; /* Добавляем overflow: hidden, чтобы скрыть машинки за пределами инвентаря */
+    overflow: hidden;
+    /* Добавляем overflow: hidden, чтобы скрыть машинки за пределами инвентаря */
 
 }
 
@@ -106,13 +127,17 @@ body {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    cursor: grab; /* Изменяем курсор при наведении */
-    transition: opacity 0.3s ease; /* Добавляем плавный переход для прозрачности */
+    cursor: grab;
+    /* Изменяем курсор при наведении */
+    transition: opacity 0.3s ease;
+    /* Добавляем плавный переход для прозрачности */
 }
 
 .car-slot:active {
-    cursor: grabbing; /* Изменяем курсор во время перетаскивания */
-    opacity: 0.7; /* Делаем элемент полупрозрачным при перетаскивании */
+    cursor: grabbing;
+    /* Изменяем курсор во время перетаскивания */
+    opacity: 0.7;
+    /* Делаем элемент полупрозрачным при перетаскивании */
 }
 
 .car-slot img {
@@ -134,14 +159,19 @@ body {
     padding: 5px 7px;
     font-size: clamp(1rem, 1.5vw, 1.2rem);
     border-radius: 7px;
-    pointer-events: none; /* Игнорируем события мыши на элементе уровня */
+    pointer-events: none;
+    /* Игнорируем события мыши на элементе уровня */
 }
 
 .car-slot.dragging {
-    width: 80%; /* Уменьшаем ширину машинки на 20% */
-    height: 80%; /* Уменьшаем высоту машинки на 20% */
-    z-index: 100; /* Устанавливаем высокий z-index */
-    transform: translate(var(--newLeft), var(--newTop)) !important; /* Используем CSS переменные для позиционирования */
+    width: 80%;
+    /* Уменьшаем ширину машинки на 20% */
+    height: 80%;
+    /* Уменьшаем высоту машинки на 20% */
+    z-index: 100;
+    /* Устанавливаем высокий z-index */
+    transform: translate(var(--newLeft), var(--newTop)) !important;
+    /* Используем CSS переменные для позиционирования */
 }
 
 /* Кнопки */
@@ -164,6 +194,7 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .round-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
@@ -172,19 +203,24 @@ body {
 
 #closeShopButton {
     /* Стили для кнопки */
-    background-color: #ffd700; /* 
+    background-color: #ffd700;
+    /* 
     color: white;          /* Белый текст */
-    border: none;          /* Без рамки */
-    padding: 15px 40px;    /* Отступы */
-    cursor: pointer;       /* Курсор в виде руки */
+    border: none;
+    /* Без рамки */
+    padding: 15px 40px;
+    /* Отступы */
+    cursor: pointer;
+    /* Курсор в виде руки */
 }
 
 
 
 /* Магазин */
 #shop {
-    display: flex; /* Используем flexbox для центрирования */
-    flex-direction: column; 
+    display: flex;
+    /* Используем flexbox для центрирования */
+    flex-direction: column;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -196,12 +232,13 @@ body {
     background-color: rgba(0, 0, 0, 0.8);
     padding: clamp(20px, 3.5vw, 30px);
     border-radius: 10px;
-    z-index: 1001; 
+    z-index: 1001;
     overflow-y: auto;
 }
 
 #shop.open {
-    opacity: 1; /* Видимый при открытии */
+    opacity: 1;
+    /* Видимый при открытии */
 }
 
 /* Заголовок магазина */
@@ -210,11 +247,15 @@ body {
     font-size: clamp(2rem, 4vw, 2.5rem);
     margin-bottom: 20px;
     text-transform: uppercase;
-    text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700; /* Многослойный неоновый эффект */
-    background-color: transparent; /* Убираем фон */
-    border-radius: 10px 10px 0 0; /* Скругление верхних углов */
+    text-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700;
+    /* Многослойный неоновый эффект */
+    background-color: transparent;
+    /* Убираем фон */
+    border-radius: 10px 10px 0 0;
+    /* Скругление верхних углов */
     padding: 10px 0;
 }
+
 .shop-header h2 {
     margin: 0;
 }
@@ -222,7 +263,7 @@ body {
 #closeShopButton {
     position: absolute;
     top: 10px;
-    right: 10px; 
+    right: 10px;
     background: none;
     border: none;
     font-size: 2rem;
@@ -239,23 +280,28 @@ body {
 #shopContent {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Центрируем машины по горизонтали */
+    align-items: center;
+    /* Центрируем машины по горизонтали */
     gap: 20px;
 }
 
 /* Карточки товаров */
 .shop-item {
-    background: linear-gradient(135deg, #222, #333); /* Градиентный фон */
+    background: linear-gradient(135deg, #222, #333);
+    /* Градиентный фон */
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-     width: 80%; /* Увеличиваем ширину карточек */
-    max-width: 500px; /* Но ограничиваем максимальную ширину */
-    text-align: center; /* Центрируем текст */
-    display: grid; 
-    grid-template-columns: 1fr auto; 
-    gap: 20px; 
+    width: 80%;
+    /* Увеличиваем ширину карточек */
+    max-width: 500px;
+    /* Но ограничиваем максимальную ширину */
+    text-align: center;
+    /* Центрируем текст */
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
 }
 
 .shop-item:hover {
@@ -268,11 +314,14 @@ body {
     height: auto;
     margin-bottom: 15px;
     border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Тень для изображения */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    /* Тень для изображения */
 }
 
-.shop-item .car-info { /* Добавляем контейнер для информации о машине */
-    text-align: left; /* Выравниваем текст по левому краю */
+.shop-item .car-info {
+    /* Добавляем контейнер для информации о машине */
+    text-align: left;
+    /* Выравниваем текст по левому краю */
 }
 
 .shop-item h3 {
@@ -296,16 +345,19 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Тень для кнопки */
-    margin-top: auto; /* Прижимаем кнопку к низу */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    /* Тень для кнопки */
+    margin-top: auto;
+    /* Прижимаем кнопку к низу */
 }
 
 .buy-button:hover {
     background: linear-gradient(to bottom, #ff9800, #ffd700);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Увеличенная тень при наведении */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    /* Увеличенная тень при наведении */
 }
 
-  .cloud {
+.cloud {
     position: absolute;
     width: 200px;
     height: 60px;
@@ -350,6 +402,7 @@ body {
     0% {
         transform: translateX(-100%);
     }
+
     100% {
         transform: translateX(100vw);
     }
@@ -359,14 +412,16 @@ body {
 #profileButton {
     position: fixed;
     top: 40px;
-    left: 30px; /* Перемещаем кнопку влево */
+    left: 30px;
+    /* Перемещаем кнопку влево */
     background: none;
     border: none;
     cursor: pointer;
 }
 
 #profileButton img {
-    width: 80px; /* Увеличиваем размер иконки в 2 раза */
+    width: 80px;
+    /* Увеличиваем размер иконки в 2 раза */
     height: 80px;
 }
 
@@ -374,39 +429,53 @@ body {
     /* ... (стили для содержимого меню) */
     position: fixed;
     top: 0;
-    left: -100%; /* Изначально меню скрыто за левой границей */
-    width: 80%; /* Ширина меню */
-    max-width: 300px; /* Максимальная ширина меню */
+    left: -100%;
+    /* Изначально меню скрыто за левой границей */
+    width: 80%;
+    /* Ширина меню */
+    max-width: 300px;
+    /* Максимальная ширина меню */
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
     padding: 20px;
-    z-index: 11; /* Устанавливаем z-index выше, чем у других элементов */
-    transition: left 0.3s ease-in-out; /* Анимация открытия меню */
+    z-index: 11;
+    /* Устанавливаем z-index выше, чем у других элементов */
+    transition: left 0.3s ease-in-out;
+    /* Анимация открытия меню */
 }
 
 #profileMenu.open {
-    left: 0; /* Открываем меню */
+    left: 0;
+    /* Открываем меню */
 }
 
 #profileContainer {
     position: fixed;
     top: 120px;
-    left: 33px; 
-    display: flex; /* Располагаем элементы вертикально */
+    left: 33px;
+    display: flex;
+    /* Располагаем элементы вертикально */
     flex-direction: column;
-    align-items: center; /* Центрируем элементы по горизонтали */
+    align-items: center;
+    /* Центрируем элементы по горизонтали */
     z-index: 2
 }
 
 
 #profileLabel {
-    background-color: #ffd700; /* Цвет фона как у кнопок */
-    color: #002; /* Цвет текста */
-    padding: 5px 10px; /* Отступы */
-    border-radius: 25px; /* Скругленные углы */
-    font-size: 1.3rem; /* Размер шрифта */
+    background-color: #ffd700;
+    /* Цвет фона как у кнопок */
+    color: #002;
+    /* Цвет текста */
+    padding: 5px 10px;
+    /* Отступы */
+    border-radius: 25px;
+    /* Скругленные углы */
+    font-size: 1.3rem;
+    /* Размер шрифта */
     font-weight: bold;
-    margin-top: 5px; /* Отступ сверху от кнопки */
+    margin-top: 5px;
+    /* Отступ сверху от кнопки */
 }
 
 
@@ -414,39 +483,58 @@ body {
     perspective: 1000px;
     height: 100vh;
     overflow: hidden;
-  }
-  
-  .car {
+}
+
+.car {
     position: absolute;
     bottom: 0;
     animation: drive 10s ease-in-out infinite;
-  }
-  
-  .wheels {
+}
+
+.wheels {
     position: absolute;
     bottom: 0;
     animation: rotate 1s linear infinite;
-  }
-  
-  .dust {
+}
+
+.dust {
     position: absolute;
     bottom: 0;
     animation: dust 5s linear infinite;
-  }
-  
-  @keyframes drive {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    50% { transform: translateY(50%) scale(0.8); }
-    100% { transform: translateY(100%) scale(0.5); opacity: 0; }
-  }
-  
-  @keyframes rotate {
-    100% { transform: rotate(360deg); }
-  }
-  
-  @keyframes dust {
-    0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-  
+}
+
+@keyframes drive {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(50%) scale(0.8);
+    }
+
+    100% {
+        transform: translateY(100%) scale(0.5);
+        opacity: 0;
+    }
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dust {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

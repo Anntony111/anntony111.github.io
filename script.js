@@ -36,19 +36,15 @@ const app = firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 const dbRef = database.ref();
 
-const welcomeScreen = document.createElement('div');
-welcomeScreen.id = 'welcomeScreen';
-welcomeScreen.innerHTML = `
-  <h2>Добро пожаловать в Cartax!</h2>
-  <p>Бонус для новых игроков:</p>
-  <ul>
-    <li>100 000 Balance</li>
-    <li>Cartax LVL: 1</li>
-  </ul>
-  <button id="claimBonusButton">Забрать бонус</button>
-`;
 
-document.body.appendChild(welcomeScreen); // Добавляем экран приветствия в body
+// Глобальные переменные (доступны во всей программе)
+let balance = 0;
+let earnRate = 0;
+let topScore = 0;
+let ownedCars = new Array(12).fill({ level: 0, name: "Пустой слот", goldPerSecond: 0 });
+let carRef = 0;  // Объявляем carRef глобально
+let carTop = 0;
+let telegramId
 
 
 
@@ -65,30 +61,31 @@ async function main() {
   const welcomeScreen = document.createElement('div');
   welcomeScreen.id = 'welcomeScreen';
   welcomeScreen.innerHTML = `
-    <h2>Добро пожаловать в Cartax!</h2>
-    <p>Бонус для новых игроков:</p>
-    <ul>
-      <li>100 000 Balance</li>
-      <li>Cartax LVL: 1</li>
-    </ul>
-    <button id="claimBonusButton">Забрать бонус</button>
-  `;
+      <h2>Добро пожаловать в Cartax!</h2>
+      <p>Бонус для новых игроков:</p>
+      <ul>
+        <li>100 000 Balance</li>
+      </ul>
+      <button id="claimBonusButton">Забрать бонус</button>
+    `;
 
   document.body.appendChild(welcomeScreen);
 
   async function initializeProfile() {
-    console.log("User not found, creating default profile...");
+    console.log("Пользователь не найден, создается профиль по умолчанию...");
     const newUserData = {
       telegram_id: telegramId,
       username: username,
       name: name,
-      balance: 0,
+      balance: 100000,
       inventory: {},
       topScore: 0,
       car_ref: 0,
       car_top: 0,
       created_at: new Date().toISOString()
     };
+
+
 
     for (let i = 0; i < 12; i++) {
       newUserData.inventory[i.toString()] = { level: 0, name: `Car ${i + 1}` };
@@ -98,19 +95,23 @@ async function main() {
 
     welcomeScreen.style.display = 'flex';
 
+    // Обработчик события для кнопки "Получить бонус"
     document.getElementById('claimBonusButton').addEventListener('click', async () => {
-      newUserData.balance = 100000;
-      newUserData.inventory['0'] = { level: 1, name: cars[0].name, goldPerSecond: cars[0].goldPerSecond };
+      welcomeScreen.style.display = 'none'; // Скрываем окно приветствия
+      
+      // ждем обновления данных в базе данных
+      await updateUserData(telegramId, newUserData); 
 
-      await updateUserData(telegramId, newUserData);
-      welcomeScreen.style.display = 'none';
+      // Обновляем данные пользователя из базы данных
+      userData = await getUserData(telegramId);
 
-      balance = newUserData.balance;
-      ownedCars = Object.values(newUserData.inventory);
-      topScore = newUserData.topScore;
+      // Обновляем глобальные переменные и интерфейс
+      balance = userData.balance;
+      ownedCars = Object.values(userData.inventory);
+      topScore = userData.topScore;
 
       updateEarnRate();
-      updateInfoPanels();
+      updateInfoPanels(); // Обновляем интерфейс
       displayCars();
       showProfile();
 
@@ -257,16 +258,6 @@ import cars from './cars.js'; // Импортируем данные о маши
 
 
 
-
-let ownedCars = new Array(12).fill({ level: 0, name: "Пустой слот", goldPerSecond: 0 });
-
-// Переменные для хранения данных
-let balance = 0;
-let earnRate = 0;
-let topScore = 0;
-let carRef = 0;  // Объявляем carRef глобально
-let carTop = 0;
-let telegramId
 
 // Функция для получения изображения машинки по уровню
 // Функция для получения изображения машинки по уровню
@@ -529,12 +520,12 @@ let isPurchaseInProgress = false;
 function displayShop(telegramId) {
   const shop = document.getElementById("shop");
   shop.innerHTML = `
-    <div class="shop-header">
-      <h2>Магазин</h2>
-      <button id="closeShopButton">Закрыть</button> 
-    </div>
-    <div id="shopContent"> </div>
-  `;
+      <div class="shop-header">
+        <h2>Магазин</h2>
+        <button id="closeShopButton">Закрыть</button> 
+      </div>
+      <div id="shopContent"> </div>
+    `;
 
   const shopContent = document.getElementById("shopContent");
 
@@ -549,10 +540,10 @@ function displayShop(telegramId) {
 
     const carInfo = document.createElement("div");
     carInfo.innerHTML = `
-      <p>Name: ${car.name}</p>
-      <p>Цена: ${abbreviateNumber(car.price)}</p>
-      <p>Доходность: ${abbreviateNumber(car.goldPerSecond)}/сек</p> 
-    `;
+        <p>Name: ${car.name}</p>
+        <p>Цена: ${abbreviateNumber(car.price)}</p>
+        <p>Доходность: ${abbreviateNumber(car.goldPerSecond)}/сек</p> 
+      `;
 
     // Создаем кнопку "Купить" для каждой машины
     const buyButton = document.createElement("button");
